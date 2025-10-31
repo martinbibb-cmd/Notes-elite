@@ -2,447 +2,557 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Notes Elite — Fast Survey Skin</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Notes Elite — New UI</title>
+<meta name="theme-color" content="#0a0e13" />
 
-<!-- Pull Fast-survey cosmetics; fall back to minimal inline styles if it fails -->
-<link rel="stylesheet" href="https://martinbibb-cmd.github.io/Fast-survey/styles.css" onerror="document.body.setAttribute('data-fallback','1')">
+<!-- ⚠️ BRANDING: we only borrow GRAPHICS (no CSS/JS) from Fast-survey -->
+<link rel="preload" as="image" href="https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg">
+<link rel="preload" as="image" href="https://martinbibb-cmd.github.io/Fast-survey/assets/branch.svg">
+
 <style>
-/* Fallback (only if the external CSS fails) */
-body[data-fallback="1"] { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0b0f14; color:#eef3f8; margin:0;}
-.container{max-width:1100px;margin:0 auto;padding:16px;}
-.appbar{position:sticky;top:0;z-index:5;background:#0f1720;border-bottom:1px solid #1f2a37;padding:10px 16px;display:flex;gap:12px;align-items:center}
-.button{border:1px solid #304256;background:#132131;border-radius:10px;padding:10px 14px;cursor:pointer}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
-.card{background:#0f1720;border:1px solid #1f2a37;border-radius:14px;padding:14px}
-.badge{font-size:.75rem;border:1px solid #263243;border-radius:999px;padding:4px 8px;opacity:.9}
-h1,h2,h3{margin:.4em 0}
-input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid #243243;background:#0c1420;color:#e8f0f6}
-label{font-size:.85rem;opacity:.9}
-hr{border:0;border-top:1px solid #1f2a37;margin:16px 0}
-.kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;background:#0a121c;border:1px solid #1f2a37;border-bottom-width:2px;border-radius:6px;padding:2px 6px}
-.section-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid #233140;background:#0c1520;margin:4px 6px 0 0}
-.tile{border:1px dashed #28405a;background:#0b1420;border-radius:14px;padding:12px;cursor:pointer}
-.tile.active{border-color:#2ea043;background:#0f1f15}
-.copybox{white-space:pre-wrap;background:#0c1219;border:1px solid #1f2a37;border-radius:10px;padding:10px;max-height:280px;overflow:auto}
-footer{opacity:.7;font-size:.85rem;margin:24px 0}
-.toast{position:fixed;right:16px;bottom:16px;background:#0f1f15;border:1px solid #1f3b2a;border-radius:12px;padding:10px 14px}
-</style>
+/* =========================
+   NEW, STANDALONE UI (no FS CSS)
+   Goals:
+   - No body scrolling jiggle
+   - Fixed frame with internal scroll areas
+   - Zero horizontal overflow
+   - Efficient information density
+   ========================= */
+:root{
+  --bg: #0a0e13;
+  --bg-elev: #0d141b;
+  --panel: #0f1722;
+  --muted: #c8d4e1;
+  --soft: #1b2836;
+  --brand: #7cc4ff;
+  --ok: #35b470;
+  --warn: #f6c14b;
+  --danger: #ff6a6a;
+  --ink: #e8f0f6;
+  --shadow: 0 1px 0 rgba(255,255,255,.02) inset, 0 12px 50px rgba(0,0,0,.35);
+}
 
+*{ box-sizing: border-box; }
+html,body{ height:100%; }
+html{ color-scheme: dark; }
+body{
+  margin:0; background: var(--bg); color: var(--ink);
+  font: 14.5px/1.45 ui-sans-serif, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  overflow:hidden; /* 👉 kill page scroll; we control it */
+}
+
+/* App frame */
+.app{
+  height: 100dvh; /* full viewport, mobile safe */
+  display: grid;
+  grid-template-rows: 56px 1fr 52px; /* header + content + action bar */
+  grid-template-columns: 100%;
+  background:
+    url("https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg") right -40px top -40px/220px no-repeat,
+    url("https://martinbibb-cmd.github.io/Fast-survey/assets/branch.svg") left -40px bottom -40px/220px no-repeat,
+    linear-gradient(180deg,#0a0e13, #0a0e13 60%, #0b1118);
+}
+
+/* Header */
+.header{
+  display:flex; align-items:center; gap:12px;
+  padding:0 14px; background:var(--bg-elev); border-bottom:1px solid #10202d;
+}
+.header .brand{ display:flex; align-items:center; gap:10px; }
+.brand .dot{ width:10px;height:10px;border-radius:50%; background:var(--brand); box-shadow:0 0 10px var(--brand);}
+.header .title{ font-weight:700; letter-spacing:.2px }
+.header .hint{ margin-left:auto; opacity:.8; font-size:12px }
+
+/* Content split */
+.content{
+  display:grid; grid-template-columns: 320px 1fr; gap:12px;
+  padding:12px; overflow:hidden; /* lock container */
+}
+@media (max-width: 980px){
+  .content{ grid-template-columns: 1fr; }
+  .sidebar{ order:2; height:36dvh; }
+  .main{ order:1; height: calc(100% - 12px - 12px); }
+}
+
+/* Scroll panes */
+.sidebar, .main{
+  background: var(--panel); border:1px solid #122232; border-radius:16px; box-shadow: var(--shadow);
+  overflow:auto; overscroll-behavior: contain;
+}
+
+/* Sidebar */
+.sidebar .h{ padding:12px 14px; position:sticky; top:0; background:linear-gradient(#101823, #0f1722 80%); border-bottom:1px solid #122232; z-index:1 }
+.sidebar .group{ padding:12px; display:grid; gap:12px }
+
+/* Mini cards */
+.card{
+  background: #0d1620; border:1px solid #132639; border-radius:12px; padding:10px;
+}
+.card h4{ margin:0 0 8px 0; font-size:13px; letter-spacing:.2px; opacity:.9 }
+.card .row{ display:flex; gap:8px; flex-wrap:wrap; }
+.card input, .card textarea{
+  width:100%; background:#0a121c; color:var(--ink); border:1px solid #1a2b3d;
+  padding:10px 11px; border-radius:10px; outline:none;
+}
+.card textarea{ resize:vertical; min-height:84px; }
+
+/* Tiles */
+.tiles{ display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:10px; }
+.tile{
+  background:#0a121c; border:1px dashed #24405a; border-radius:12px; padding:10px; cursor:pointer; transition: transform .06s ease;
+}
+.tile:hover{ transform: translateY(-1px); }
+.tile.active{ border-style:solid; border-color: var(--ok); background:#0e1b14; }
+
+/* Main area */
+.main .h{ padding:12px 14px; position:sticky; top:0; background:linear-gradient(#101823, #0f1722 80%); border-bottom:1px solid #122232; z-index:1 }
+.section-pills{ display:flex; gap:8px; flex-wrap:wrap; padding:12px 12px 0 }
+.pill{ border:1px solid #22364a; background:#0b1520; border-radius:999px; padding:6px 10px; font-size:12px; opacity:.95 }
+
+.sections{ padding:12px; display:grid; grid-template-columns: repeat(auto-fill,minmax(320px,1fr)); gap:12px }
+.section{
+  background:#0d1620; border:1px solid #152a3d; border-radius:12px; padding:10px;
+}
+.section h3{ margin:0 0 8px 0; font-size:15px; }
+.copybox{
+  background:#0a121c; border:1px solid #192b3c; border-radius:10px; padding:10px; min-height:120px; max-height:220px; overflow:auto; white-space:pre-wrap;
+}
+.section textarea{ margin-top:8px }
+
+/* Action bar */
+.actions{
+  display:flex; gap:8px; align-items:center; justify-content:center;
+  padding:8px; background:var(--bg-elev); border-top:1px solid #10202d;
+}
+.btn{
+  appearance:none; border:1px solid #21405a; background:#112233; color:var(--ink);
+  padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600;
+}
+.btn.primary{ border-color:#1f4d83; background:#113459; }
+.btn.good{ border-color:#1c5f3a; background:#0f2a1c; }
+.btn:active{ transform: translateY(1px); }
+
+/* Helpers */
+.kbd{ font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0a121c; border:1px solid #1f2a37; border-bottom-width:2px;border-radius:6px;padding:2px 6px }
+.badge{ font-size:12px; opacity:.85; }
+hr{ border:0; border-top:1px solid #122232; margin:10px 0; }
+.hidden{ display:none !important; }
+.toast{
+  position:fixed; right:12px; bottom:12px; background:#0f1f15; border:1px solid #1f3b2a;
+  padding:10px 12px; border-radius:12px; box-shadow: var(--shadow);
+}
+</style>
 </head>
 <body>
-<div class="appbar">
-  <strong>🗒️ Notes&nbsp;Elite</strong>
-  <span class="badge">Fast-survey skin</span>
-  <div style="margin-left:auto;display:flex;gap:8px">
-    <button class="button" id="btnReset">Reset</button>
-    <button class="button" id="btnInstall" hidden>Install</button>
+<div class="app">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="brand"><span class="dot"></span><span class="title">Notes&nbsp;Elite</span></div>
+    <span class="badge">New frame • zero dead space</span>
+    <div class="hint">Tip: <span class="kbd">⌘</span>/<span class="kbd">Ctrl</span>+<span class="kbd">K</span> to build</div>
   </div>
-</div>
 
-<div class="container">
-  <div class="card">
-    <h1>Depot notes — assisted builder</h1>
-    <p>Choose tiles below; we’ll auto-compose Depot sections based on <code>Options.txt</code>, enrich with What3Words &amp; water model, and export clean JSON.</p>
+  <!-- CONTENT -->
+  <div class="content">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="h"><strong>Inputs</strong></div>
+      <div class="group">
 
-    <div class="grid" id="quickInputs">
-      <div class="card">
-        <h3>📍 Location (What3Words)</h3>
-        <label>3&nbsp;words or lat,long
+        <div class="card">
+          <h4>📍 What3Words</h4>
           <input id="w3wInput" placeholder="filled.count.soap  or  50.7341,-1.7763" />
-        </label>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="button" id="btnResolveW3W">Resolve</button>
-          <button class="button" id="btnUseDevice">Use device GPS</button>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="btnResolveW3W">Resolve</button>
+            <button class="btn" id="btnGPS">Use GPS</button>
+          </div>
+          <div id="w3wBadge" class="badge" style="display:block;margin-top:8px;opacity:.9">No location yet</div>
         </div>
-        <div id="w3wResult" style="margin-top:8px" class="badge">No location yet</div>
-        <small>Uses your Worker if set <span class="kbd">W3W_PROXY</span>; otherwise direct 3WA text is stored.</small>
-      </div>
 
-      <div class="card">
-        <h3>🧠 Readability (Cloudflare API)</h3>
-        <label><input type="checkbox" id="chkReadable" checked> Clean up/format notes via Cloudflare</label>
-        <label style="margin-top:6px">API Endpoint
-          <input id="readableEndpoint" placeholder="https://survey-brain-api.martinbibb.workers.dev/clean" />
-        </label>
-      </div>
+        <div class="card">
+          <h4>🧠 Readability (Cloudflare)</h4>
+          <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="chkReadable" checked> Enable</label>
+          <input id="readableEndpoint" placeholder="https://survey-brain-api.martinbibb.workers.dev/clean" style="margin-top:6px" />
+        </div>
 
-      <div class="card">
-        <h3>📡 Background telemetry</h3>
-        <label><input type="checkbox" id="chkTelemetry"> Send anonymised structure for quote-tool design</label>
-        <label style="margin-top:6px">Telemetry Endpoint
-          <input id="telemetryEndpoint" placeholder="https://survey-brain-api.martinbibb.workers.dev/telemetry" />
-        </label>
-        <small>Only schema & counts; no PII unless you add it.</small>
-      </div>
-    </div>
-  </div>
+        <div class="card">
+          <h4>📡 Background telemetry</h4>
+          <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="chkTelemetry"> Send anonymised schema</label>
+          <input id="telemetryEndpoint" placeholder="https://survey-brain-api.martinbibb.workers.dev/telemetry" style="margin-top:6px" />
+          <small class="badge">Section counts only — no PII unless added by you.</small>
+        </div>
 
-  <div class="card">
-    <h2>Pick notes from <code>Options.txt</code></h2>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <label style="flex:1 1 380px">Depot-notes Options.txt URL
-        <input id="optionsUrl" value="https://raw.githubusercontent.com/martinbibb-cmd/Depot-notes/refs/heads/main/Options.txt" />
-      </label>
-      <button class="button" id="btnLoadOptions">Load</button>
-      <span id="optionsStatus" class="badge">idle</span>
-    </div>
+        <div class="card">
+          <h4>🔗 Depot Options.txt</h4>
+          <input id="optionsUrl" value="https://raw.githubusercontent.com/martinbibb-cmd/Depot-notes/refs/heads/main/Options.txt" />
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="btnLoadOptions">Load</button>
+            <span id="optionsStatus" class="badge" style="align-self:center">idle</span>
+          </div>
+        </div>
 
-    <div id="optionsTiles" class="grid" style="margin-top:12px"></div>
-  </div>
-
-  <div class="card">
-    <h2>System recommendation</h2>
-    <div class="grid">
-      <div class="tile">
-        <label>Headline recommendation
+        <div class="card">
+          <h4>🧩 System recommendation</h4>
           <input id="sysHeadline" placeholder="e.g. Vaillant ecoFIT system + Mixergy 210L" />
-        </label>
-        <label style="margin-top:8px">Why this system?
-          <textarea id="sysWhy" rows="4" placeholder="Heat-loss, hot-water demand, flue route, controls, future-proofing…"></textarea>
-        </label>
+          <textarea id="sysWhy" placeholder="Why this system? Heat-loss, DHW demand, flue route, controls…"></textarea>
+        </div>
+
+        <div class="card">
+          <h4>🚿 Hot-Water Model</h4>
+          <iframe id="hotWaterFrame" loading="lazy" style="width:100%;height:260px;border:1px solid #1b3146;border-radius:10px"
+            src="https://martinbibb-cmd.github.io/Depot-notes/hot-water-model.html"></iframe>
+          <small class="badge">Summary auto-includes on export if the model posts <code>HOT_WATER_SUMMARY</code>.</small>
+        </div>
+
       </div>
-      <div class="tile">
-        <strong>Hot-Water Model</strong>
-        <iframe id="hotWaterFrame" loading="lazy" style="width:100%;height:360px;border:1px solid #1f2a37;border-radius:10px"
-          src="https://martinbibb-cmd.github.io/Depot-notes/hot-water-model.html"></iframe>
-        <small>Embedded from Depot-notes. Adjust there; summary is pulled into the section when exporting.</small>
-      </div>
-    </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main" id="main">
+      <div class="h"><strong>Composer</strong></div>
+
+      <section style="padding:0 12px 6px">
+        <div class="tiles" id="optionsTiles">
+          <!-- dynamic tiles from Options.txt -->
+        </div>
+      </section>
+
+      <section class="section-pills" id="sectionPills"></section>
+
+      <section class="sections" id="sectionsGrid"></section>
+    </main>
   </div>
 
-  <div class="card">
-    <h2>Live sections</h2>
-    <div id="sectionPills"></div>
-    <hr />
-    <div class="grid" id="sectionsGrid"></div>
+  <!-- ACTION BAR -->
+  <div class="actions">
+    <button class="btn" id="btnBuild">Build Draft</button>
+    <button class="btn" id="btnClean">Clean via Cloudflare</button>
+    <button class="btn" id="btnCopy">Copy Text</button>
+    <button class="btn good" id="btnJSON">Download JSON</button>
+    <button class="btn" id="btnReset">Reset</button>
   </div>
-
-  <div class="card">
-    <h2>Output</h2>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="button" id="btnBuild">Build Draft</button>
-      <button class="button" id="btnClean">Clean via Cloudflare</button>
-      <button class="button" id="btnCopyText">Copy Text</button>
-      <button class="button" id="btnDownloadJSON">Download JSON</button>
-    </div>
-    <h3 style="margin-top:10px">Preview</h3>
-    <div id="preview" class="copybox" aria-live="polite"></div>
-  </div>
-
-  <footer>
-    Sources: Fast-survey cosmetics & structure; Depot-notes Options and Hot-Water Model. This page stores data locally until you export.
-  </footer>
 </div>
 
-<div id="toast" class="toast" hidden></div>
+<div id="toast" class="toast hidden"></div>
 
 <script>
-/* -------------------- CONFIG -------------------- */
-const CFG = {
-  W3W_PROXY: localStorage.getItem('W3W_PROXY') || 'https://w3w-proxy.martinbibb.workers.dev',
-  READABLE_API: document.getElementById('readableEndpoint').value,
-  TELEMETRY_API: document.getElementById('telemetryEndpoint').value,
-  DEFAULT_SECTIONS: [
-    "Customer details","Property","Existing system","New system","Flue & terminal",
-    "Condensate & waste","Gas & meter","Electrical & controls","Cylinders & HW",
-    "Access & WAH","H&S / Asbestos","Observations","System recommendation"
-  ]
-};
-
-// PWA prompt
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
-}
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault(); deferredPrompt = e; document.getElementById('btnInstall').hidden = false;
-});
-document.getElementById('btnInstall').onclick = async () => { if (!deferredPrompt) return;
-  deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; };
-
-/* -------------------- UTIL -------------------- */
+/* =========================
+   STATE
+   ========================= */
 const $ = (id)=>document.getElementById(id);
-const toast = (msg)=>{ const t=$('toast'); t.textContent=msg; t.hidden=false; setTimeout(()=>t.hidden=true,1800); };
-const save = ()=> localStorage.setItem('notes-elite', JSON.stringify(state));
-const load = ()=> { try{ return JSON.parse(localStorage.getItem('notes-elite')||'{}'); }catch{ return {}; } };
-const sanitize = (s)=> (s||'').toString().replace(/[<>]/g,'');
-
-/* -------------------- STATE -------------------- */
 const state = Object.assign({
-  sections:{}, selected:{}, w3w:null, gps:null, hotWaterSummary:'',
-  sys:{headline:'', why:''}, optionsText:'', optionsUrl: $('optionsUrl').value
+  sections:{},          // free text user edits
+  selected:{},          // { SectionName: { idx: true } }
+  optionsText:'',       // raw Options.txt
+  optionsUrl: $('optionsUrl').value,
+  sys:{ headline:'', why:'' },
+  w3w:null,
+  hotWaterSummary:'',
+  readableEndpoint: '',
+  telemetryEndpoint: '',
+  readableEnabled: true,
+  telemetryEnabled: false
 }, load());
+let parsedOptions = state.optionsText ? parseOptions(state.optionsText) : {};
 
-$('optionsUrl').value = state.optionsUrl;
+applyInitial();
+renderSections();
 
-/* -------------------- OPTIONS.TXT LOADER -------------------- */
-/* Heuristic parser: sections start with [Section], bullets start with '-', key: value pairs supported. */
+if(state.optionsText){
+  renderTiles();
+  $('optionsStatus').textContent = 'loaded';
+}else{
+  loadOptions();
+}
+
+/* =========================
+   LAYOUT SANITY: no horizontal overflow EVER
+   ========================= */
+(function lockHorizontal(){
+  const killers = [document.documentElement, document.body];
+  const clamp = ()=> killers.forEach(el=> el.style.overflowX='hidden');
+  window.addEventListener('resize', clamp, {passive:true});
+  clamp();
+})();
+
+/* =========================
+   STORAGE
+   ========================= */
+function save(){ localStorage.setItem('notes-elite-v2', JSON.stringify(state)); }
+function load(){ try{ return JSON.parse(localStorage.getItem('notes-elite-v2')||'{}'); }catch{ return {}; } }
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 1600); }
+
+/* =========================
+   OPTIONS.TXT PARSER
+   ========================= */
 function parseOptions(txt){
   const lines = txt.split(/\r?\n/);
-  const out = {}; let current = null;
-  for (const raw of lines){
+  const out = {}; let cur = null;
+  for(const raw of lines){
     const line = raw.trim();
     if(!line) continue;
-    const sec = line.match(/^\[(.+?)\]\s*$/);
-    if(sec){ current = sec[1]; out[current]=out[current]||[]; continue; }
-    if(line.startsWith('- ')){ out[current]=out[current]||[]; out[current].push(line.slice(2)); continue; }
+    const m = line.match(/^\[(.+?)\]$/);
+    if(m){ cur=m[1]; if(!out[cur]) out[cur]=[]; continue; }
+    if(line.startsWith('- ')){ out[cur]=out[cur]||[]; out[cur].push(line.slice(2)); continue; }
     const kv = line.match(/^([^:]+):\s*(.+)$/);
-    if(kv){ out[current]=out[current]||[]; out[current].push(kv[1].trim()+': '+kv[2].trim()); continue; }
-    // plain line
-    if(current){ out[current].push(line); }
+    if(kv){ out[cur]=out[cur]||[]; out[cur].push(kv[1].trim()+': '+kv[2].trim()); continue; }
+    if(cur){ out[cur].push(line); }
   }
   return out;
 }
 
-async function loadOptions(){
-  const url = $('optionsUrl').value.trim();
-  state.optionsUrl = url; save();
-  $('optionsStatus').textContent = 'loading…';
-  try{
-    const r = await fetch(url, {cache:'no-store'});
-    const t = await r.text();
-    state.optionsText = t; save();
-    const parsed = parseOptions(t);
-    renderTiles(parsed);
-    $('optionsStatus').textContent = 'loaded';
-  }catch(e){
-    $('optionsStatus').textContent = 'error';
-    toast('Failed to load Options.txt');
-  }
-}
-$('btnLoadOptions').onclick = loadOptions;
-if (state.optionsText){ renderTiles(parseOptions(state.optionsText)); }
+/* =========================
+   RENDER: Tiles + Sections
+   ========================= */
+const DEFAULT_SECTIONS = [
+  "Customer details","Property","Existing system","New system","Flue & terminal",
+  "Condensate & waste","Gas & meter","Electrical & controls","Cylinders & HW",
+  "Access & WAH","H&S / Asbestos","Observations","System recommendation"
+];
 
-/* -------------------- TILES FROM OPTIONS -------------------- */
-function renderTiles(parsed){
-  const tiles = $('optionsTiles');
-  tiles.innerHTML = '';
-  // show as sections -> choices
-  Object.entries(parsed).forEach(([section, items])=>{
-    const wrap = document.createElement('div');
-    wrap.className = 'card';
-    const h = document.createElement('h3'); h.textContent = section;
-    wrap.appendChild(h);
+function renderTiles(){
+  const wrap = $('optionsTiles');
+  wrap.innerHTML = '';
+  Object.entries(parsedOptions).forEach(([section, items])=>{
+    // section heading card
+    const sectionCard = document.createElement('div');
+    sectionCard.className = 'tile';
+    sectionCard.style.borderStyle='solid';
+    sectionCard.style.background='#0e1a28';
+    sectionCard.style.cursor='default';
+    sectionCard.innerHTML = `<strong>${section}</strong><br><span class="badge">Tap to add lines below</span>`;
+    wrap.appendChild(sectionCard);
 
-    const grid = document.createElement('div'); grid.className='grid';
+    // items
     items.forEach((text, idx)=>{
-      const tile = document.createElement('div');
-      tile.className = 'tile';
-      tile.tabIndex = 0;
-      tile.dataset.section = section;
-      tile.dataset.idx = idx;
-      tile.textContent = text;
-      tile.onclick = ()=> toggleTile(tile);
-      grid.appendChild(tile);
+      const t = document.createElement('div');
+      t.className='tile';
+      t.textContent = text;
+      t.dataset.section = section;
+      t.dataset.idx = idx;
+      if(state.selected?.[section]?.[idx]) t.classList.add('active');
+      t.onclick = ()=> toggleTile(t);
+      wrap.appendChild(t);
     });
-    wrap.appendChild(grid);
-    tiles.appendChild(wrap);
   });
-  // rebuild sections pane
   renderSections();
 }
 
-function toggleTile(tile){
-  const key = tile.dataset.section;
-  const idx = tile.dataset.idx;
-  state.selected[key] = state.selected[key] || {};
-  state.selected[key][idx] = !state.selected[key][idx];
-  tile.classList.toggle('active', !!state.selected[key][idx]);
-  renderSections();
+function toggleTile(el){
+  const s = el.dataset.section, i = el.dataset.idx;
+  state.selected[s] = state.selected[s] || {};
+  state.selected[s][i] = !state.selected[s][i];
+  el.classList.toggle('active', !!state.selected[s][i]);
   save();
+  renderSections();
 }
 
-/* -------------------- LIVE SECTIONS -------------------- */
 function renderSections(){
-  const pills = $('sectionPills'); pills.innerHTML = '';
-  const grid = $('sectionsGrid'); grid.innerHTML = '';
+  const pills = $('sectionPills'); pills.innerHTML='';
+  const grid = $('sectionsGrid'); grid.innerHTML='';
 
-  const sectionNames = Array.from(new Set([...CFG.DEFAULT_SECTIONS, ...Object.keys(state.selected||{})]));
-  sectionNames.forEach(name=>{
-    const pill = document.createElement('span'); pill.className='section-pill'; pill.textContent = name;
-    pills.appendChild(pill);
+  const names = Array.from(new Set([...DEFAULT_SECTIONS, ...Object.keys(state.selected||{})]));
+  names.forEach(name=>{
+    const pill = document.createElement('span');
+    pill.className='pill'; pill.textContent=name; pills.appendChild(pill);
 
-    const card = document.createElement('div'); card.className='card';
-    const h = document.createElement('h3'); h.textContent = name; card.appendChild(h);
+    const card = document.createElement('div'); card.className='section';
+    const h = document.createElement('h3'); h.textContent=name; card.appendChild(h);
 
-    // compose body from selected tiles for this section + system recommendation extra
-    const body = [];
-    const sel = state.selected[name] || {};
-    const parsed = state.optionsText ? parseOptions(state.optionsText) : {};
-    if(parsed[name]){
-      parsed[name].forEach((t, i)=>{ if(sel[i]) body.push('• '+t); });
-    }
-    if(name === 'System recommendation'){
-      if(state.sys.headline) body.unshift('Recommendation: '+state.sys.headline);
-      if(state.sys.why) body.push('Why: '+state.sys.why);
-      if(state.hotWaterSummary) body.push('Hot-water model: '+state.hotWaterSummary);
-      if(state.w3w?.words) body.push('What3Words: ///'+state.w3w.words);
-    }
-    // free edit box
-    const ta = document.createElement('textarea');
-    ta.rows = 6; ta.placeholder = 'Add/override notes…';
-    ta.value = (state.sections[name]?.free || '');
-    ta.oninput = ()=>{ state.sections[name] = state.sections[name]||{}; state.sections[name].free = ta.value; save(); };
-    const pre = document.createElement('div'); pre.className='copybox';
-    pre.textContent = body.concat([ta.value]).filter(Boolean).join('\n');
+    const copy = document.createElement('div'); copy.className='copybox';
+    copy.textContent = composeSection(name);
+    card.appendChild(copy);
 
-    card.appendChild(pre);
+    const ta = document.createElement('textarea'); ta.placeholder='Add/override notes…'; ta.rows=6;
+    ta.value = state.sections?.[name]?.free || '';
+    ta.oninput = ()=>{
+      state.sections[name]=state.sections[name]||{};
+      state.sections[name].free = ta.value;
+      save();
+      copy.textContent = composeSection(name);
+    };
     card.appendChild(ta);
+
     grid.appendChild(card);
   });
 }
 
-/* Mirror system inputs into state */
-$('sysHeadline').value = state.sys.headline||'';
-$('sysWhy').value = state.sys.why||'';
-$('sysHeadline').oninput = (e)=>{ state.sys.headline = sanitize(e.target.value); save(); renderSections(); };
-$('sysWhy').oninput = (e)=>{ state.sys.why = sanitize(e.target.value); save(); renderSections(); };
+function composeSection(name){
+  const parsed = parsedOptions;
+  const sel = state.selected?.[name] || {};
+  const lines = [];
+  if(parsed[name]) parsed[name].forEach((t,i)=>{ if(sel[i]) lines.push('• '+t); });
+  if(name==='System recommendation'){
+    if(state.sys.headline) lines.unshift('Recommendation: '+state.sys.headline);
+    if(state.sys.why) lines.push('Why: '+state.sys.why);
+    if(state.hotWaterSummary) lines.push('Hot-water model: '+state.hotWaterSummary);
+    if(state.w3w?.words) lines.push('What3Words: ///'+state.w3w.words);
+  }
+  if(state.sections?.[name]?.free) lines.push(state.sections[name].free);
+  return lines.join('\n');
+}
 
-/* -------------------- HOT WATER SUMMARY BRIDGE -------------------- */
-/* Try to read a summary string from the embedded tool via postMessage (opt-in) */
-window.addEventListener('message', (evt)=>{
+/* =========================
+   LOAD & BOOTSTRAP
+   ========================= */
+async function loadOptions(){
+  $('optionsStatus').textContent='loading…';
   try{
-    if(typeof evt.data === 'object' && evt.data && evt.data.type === 'HOT_WATER_SUMMARY'){
-      state.hotWaterSummary = sanitize(evt.data.summary||'');
-      save(); renderSections(); toast('Hot-water summary received');
-    }
-  }catch{}
-}, false);
+    const url = $('optionsUrl').value.trim();
+    const r = await fetch(url, {cache:'no-store'});
+    const t = await r.text();
+    state.optionsUrl = url;
+    state.optionsText = t; save();
+    parsedOptions = parseOptions(t);
+    renderTiles();
+    $('optionsStatus').textContent='loaded';
+  }catch(e){
+    $('optionsStatus').textContent='error';
+    toast('Failed to load Options.txt');
+  }
+}
+$('btnLoadOptions').onclick = loadOptions;
 
-/* -------------------- WHAT3WORDS -------------------- */
-async function resolveW3W(input){
-  const val = input.trim();
-  // Accept ///words.words.words, words.words.words, or lat,long
-  const coord = val.match(/^\s*(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)\s*$/);
+/* =========================
+   WHAT3WORDS
+   ========================= */
+const W3W_PROXY = 'https://w3w-proxy.martinbibb.workers.dev';
+$('btnResolveW3W').onclick = ()=> resolveW3W($('w3wInput').value);
+$('btnGPS').onclick = ()=> navigator.geolocation?.getCurrentPosition(
+  pos => resolveW3W(`${pos.coords.latitude},${pos.coords.longitude}`),
+  ()=> toast('GPS unavailable')
+);
+
+async function resolveW3W(val){
+  const s = (val||'').trim();
+  if(!s){ toast('Enter three words or lat,lng'); return; }
+  const coord = s.match(/^\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\s*$/);
   try{
-    let result = null;
+    let result;
     if(coord){
-      // Try Worker first
-      result = await tryFetch(`${CFG.W3W_PROXY}/convert-to-3wa?lat=${coord[1]}&lng=${coord[3]}`);
-      if(!result?.words){ result = { coordinates:{lat:+coord[1], lng:+coord[3]}, words:null }; }
+      const url = `${W3W_PROXY}/convert-to-3wa?lat=${coord[1]}&lng=${coord[3]}`;
+      result = await fetch(url).then(r=>r.json());
+      if(!result?.words) result = { coordinates:{lat:+coord[1],lng:+coord[3]}, words:null };
     }else{
-      const words = val.replace(/^\/*/,'').replace(/^w3w:/,'').trim();
-      result = await tryFetch(`${CFG.W3W_PROXY}/convert-to-coords?words=${encodeURIComponent(words)}`);
-      if(!result?.coordinates){ result = { words, coordinates:null }; }
+      const words = s.replace(/^\/+/, '').replace(/^w3w:/,'');
+      const url = `${W3W_PROXY}/convert-to-coords?words=${encodeURIComponent(words)}`;
+      result = await fetch(url).then(r=>r.json());
       result.words = result.words || words;
     }
     state.w3w = result; save();
-    $('w3wResult').textContent = result.words ? `///${result.words}` :
-      (result.coordinates ? `${result.coordinates.lat},${result.coordinates.lng}` : 'Unresolved');
-  }catch(e){
-    $('w3wResult').textContent = 'Unresolved';
+    $('w3wBadge').textContent = result.words ? `///${result.words}` :
+      result.coordinates ? `${result.coordinates.lat},${result.coordinates.lng}` : 'Unresolved';
+    renderSections();
+  }catch{
+    $('w3wBadge').textContent = 'Unresolved';
   }
 }
 
-async function tryFetch(url){
-  const r = await fetch(url, {method:'GET'});
-  if(!r.ok) throw new Error('Bad response');
-  return r.json();
-}
-
-$('btnResolveW3W').onclick = ()=> resolveW3W($('w3wInput').value);
-$('btnUseDevice').onclick = ()=> navigator.geolocation?.getCurrentPosition(
-  pos=> resolveW3W(`${pos.coords.latitude},${pos.coords.longitude}`),
-  ()=> toast('GPS unavailable'));
-
-/* -------------------- BUILD / CLEAN / EXPORT -------------------- */
-function buildDraft(){
-  const sectionNames = Array.from(new Set([...CFG.DEFAULT_SECTIONS, ...Object.keys(state.selected||{})]));
-  const bodyBySection = {};
-  const parsed = state.optionsText ? parseOptions(state.optionsText) : {};
-  sectionNames.forEach(name=>{
-    const sel = state.selected[name] || {};
-    const blocks = [];
-    if(parsed[name]) parsed[name].forEach((t,i)=>{ if(sel[i]) blocks.push('• '+t); });
-    if(state.sections[name]?.free) blocks.push(state.sections[name].free);
-    if(name==='System recommendation'){
-      if(state.sys.headline) blocks.unshift('Recommendation: '+state.sys.headline);
-      if(state.sys.why) blocks.push('Why: '+state.sys.why);
-      if(state.hotWaterSummary) blocks.push('Hot-water model: '+state.hotWaterSummary);
-      if(state.w3w?.words) blocks.push('What3Words: ///'+state.w3w.words);
-    }
-    bodyBySection[name] = blocks.filter(Boolean).join('\n').trim();
-  });
-
-  // preview text
-  const preview = Object.entries(bodyBySection)
-    .filter(([,v])=>v)
-    .map(([k,v])=>`# ${k}\n${v}`).join('\n\n');
-  $('preview').textContent = preview || 'No content yet.';
-  state.lastBuilt = { bodyBySection, preview, ts: Date.now() }; save();
-
-  // optional telemetry (schema only)
-  if($('chkTelemetry').checked && $('telemetryEndpoint').value.trim()){
-    const schema = {
-      ts: Date.now(),
-      sections: Object.keys(bodyBySection).length,
-      selectedCounts: Object.fromEntries(Object.entries(state.selected||{}).map(([k,v])=>[k, Object.values(v).filter(Boolean).length])),
-      hasW3W: !!state.w3w?.words
-    };
-    fetch($('telemetryEndpoint').value.trim(), {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(schema)}).catch(()=>{});
-  }
-}
-
-async function cleanDraft(){
-  if(!$('chkReadable').checked || !$('readableEndpoint').value.trim()) return toast('Readability disabled');
-  const text = state.lastBuilt?.preview || buildDraftAndReturn();
+/* =========================
+   HOT WATER SUMMARY BRIDGE
+   ========================= */
+window.addEventListener('message', (evt)=>{
   try{
-    const r = await fetch($('readableEndpoint').value.trim(), {method:'POST', headers:{'content-type':'text/plain'}, body:text});
+    if(evt.data && evt.data.type === 'HOT_WATER_SUMMARY'){
+      state.hotWaterSummary = (evt.data.summary||'').toString();
+      save(); renderSections(); toast('Hot-water summary received');
+    }
+  }catch{}
+});
+
+/* =========================
+   BUILD / CLEAN / EXPORT
+   ========================= */
+function buildDraft(){
+  const names = Array.from(new Set([...DEFAULT_SECTIONS, ...Object.keys(state.selected||{})]));
+  const by = {};
+  names.forEach(n=> by[n] = composeSection(n).trim());
+  const txt = Object.entries(by).filter(([,v])=>v).map(([k,v])=>`# ${k}\n${v}`).join('\n\n');
+  state.lastBuilt = { by, txt, ts: Date.now() }; save();
+  return txt;
+}
+async function cleanDraft(){
+  if(!$('chkReadable').checked){ toast('Readability disabled'); return; }
+  const ep = $('readableEndpoint').value.trim(); if(!ep){ toast('No readability endpoint'); return; }
+  const txt = state.lastBuilt?.txt || buildDraft();
+  try{
+    const r = await fetch(ep, {method:'POST', headers:{'content-type':'text/plain'}, body: txt});
     const t = await r.text();
-    $('preview').textContent = t; toast('Cleaned');
+    state.lastBuilt.txt = t; save();
+    toast('Cleaned');
   }catch{ toast('Clean failed'); }
 }
-function buildDraftAndReturn(){ buildDraft(); return state.lastBuilt.preview; }
-
 function copyText(){
-  const text = $('preview').textContent;
-  navigator.clipboard.writeText(text).then(()=>toast('Copied'));
+  const txt = state.lastBuilt?.txt || buildDraft();
+  navigator.clipboard.writeText(txt).then(()=>toast('Copied'));
 }
 function downloadJSON(){
-  const data = state.lastBuilt?.bodyBySection || {};
+  if(!state.lastBuilt?.by){ buildDraft(); }
+  const by = state.lastBuilt?.by || {};
   const out = {
-    meta:{
-      createdAt: new Date().toISOString(),
-      w3w: state.w3w || null
-    },
-    sections: data
+    meta:{ createdAt:new Date().toISOString(), w3w: state.w3w || null },
+    sections: by
   };
   const blob = new Blob([JSON.stringify(out,null,2)], {type:'application/json'});
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = `depot-notes_${new Date().toISOString().replace(/[:.]/g,'-')}.json`; a.click();
+  a.href = URL.createObjectURL(blob);
+  a.download = `depot-notes_${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+  a.click();
 }
 
-$('btnBuild').onclick = buildDraft;
+$('btnBuild').onclick = ()=> { buildDraft(); toast('Draft built'); maybeTelemetry(); };
 $('btnClean').onclick = cleanDraft;
-$('btnCopyText').onclick = copyText;
-$('btnDownloadJSON').onclick = downloadJSON;
+$('btnCopy').onclick = copyText;
+$('btnJSON').onclick = downloadJSON;
 
-/* -------------------- RESET -------------------- */
+/* telemetry */
+function maybeTelemetry(){
+  if(!$('chkTelemetry').checked) return;
+  const ep = $('telemetryEndpoint').value.trim(); if(!ep) return;
+  const schema = {
+    ts: Date.now(),
+    sections: Object.keys(state.selected||{}).length,
+    counts: Object.fromEntries(Object.entries(state.selected||{}).map(([k,v])=>[k, Object.values(v).filter(Boolean).length])),
+    hasW3W: !!state.w3w?.words
+  };
+  fetch(ep, {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(schema)}).catch(()=>{});
+}
+
+/* =========================
+   RESET
+   ========================= */
 $('btnReset').onclick = ()=>{
-  localStorage.removeItem('notes-elite');
-  state.sections={}; state.selected={}; state.sys={}; state.w3w=null; state.hotWaterSummary='';
-  $('preview').textContent=''; renderSections(); toast('Reset');
+  localStorage.removeItem('notes-elite-v2');
+  location.reload();
 };
 
-/* -------------------- BOOT -------------------- */
-window.addEventListener('load', ()=>{
-  // set persisted toggles/inputs
+/* =========================
+   UX niceties
+   ========================= */
+document.addEventListener('keydown', (e)=>{
+  if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); $('btnBuild').click(); }
+});
+
+/* =========================
+   INITIAL APPLY
+   ========================= */
+function applyInitial(){
+  $('optionsUrl').value = state.optionsUrl || $('optionsUrl').value;
+  $('sysHeadline').value = state.sys.headline || '';
+  $('sysWhy').value = state.sys.why || '';
   $('readableEndpoint').value = state.readableEndpoint || $('readableEndpoint').value;
   $('telemetryEndpoint').value = state.telemetryEndpoint || $('telemetryEndpoint').value;
-  $('chkTelemetry').checked = !!state.chkTelemetry;
+  $('chkReadable').checked = state.readableEnabled ?? true;
+  $('chkTelemetry').checked = state.telemetryEnabled ?? false;
 
-  // wire persistence
+  $('sysHeadline').oninput = (e)=>{ state.sys.headline = e.target.value; save(); renderSections(); };
+  $('sysWhy').oninput = (e)=>{ state.sys.why = e.target.value; save(); renderSections(); };
   $('readableEndpoint').oninput = (e)=>{ state.readableEndpoint = e.target.value; save(); };
   $('telemetryEndpoint').oninput = (e)=>{ state.telemetryEndpoint = e.target.value; save(); };
-  $('chkTelemetry').onchange = (e)=>{ state.chkTelemetry = e.target.checked; save(); };
-
-  // auto-load options if we have them
-  if(state.optionsText){ $('optionsStatus').textContent='loaded'; } else { loadOptions(); }
-
-  // initial render
-  renderSections();
-});
+  $('chkReadable').onchange = (e)=>{ state.readableEnabled = e.target.checked; save(); };
+  $('chkTelemetry').onchange = (e)=>{ state.telemetryEnabled = e.target.checked; save(); };
+}
 </script>
 </body>
 </html>
