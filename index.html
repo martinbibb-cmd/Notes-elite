@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Notes Elite — Fast Survey Skin</title>
+
+<!-- Pull Fast-survey cosmetics; fall back to minimal inline styles if it fails -->
+<link rel="stylesheet" href="https://martinbibb-cmd.github.io/Fast-survey/styles.css" onerror="document.body.setAttribute('data-fallback','1')">
+<style>
+/* Fallback (only if the external CSS fails) */
+body[data-fallback="1"] { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0b0f14; color:#eef3f8; margin:0;}
+.container{max-width:1100px;margin:0 auto;padding:16px;}
+.appbar{position:sticky;top:0;z-index:5;background:#0f1720;border-bottom:1px solid #1f2a37;padding:10px 16px;display:flex;gap:12px;align-items:center}
+.button{border:1px solid #304256;background:#132131;border-radius:10px;padding:10px 14px;cursor:pointer}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
+.card{background:#0f1720;border:1px solid #1f2a37;border-radius:14px;padding:14px}
+.badge{font-size:.75rem;border:1px solid #263243;border-radius:999px;padding:4px 8px;opacity:.9}
+h1,h2,h3{margin:.4em 0}
+input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid #243243;background:#0c1420;color:#e8f0f6}
+label{font-size:.85rem;opacity:.9}
+hr{border:0;border-top:1px solid #1f2a37;margin:16px 0}
+.kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;background:#0a121c;border:1px solid #1f2a37;border-bottom-width:2px;border-radius:6px;padding:2px 6px}
+.section-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid #233140;background:#0c1520;margin:4px 6px 0 0}
+.tile{border:1px dashed #28405a;background:#0b1420;border-radius:14px;padding:12px;cursor:pointer}
+.tile.active{border-color:#2ea043;background:#0f1f15}
+.copybox{white-space:pre-wrap;background:#0c1219;border:1px solid #1f2a37;border-radius:10px;padding:10px;max-height:280px;overflow:auto}
+footer{opacity:.7;font-size:.85rem;margin:24px 0}
+.toast{position:fixed;right:16px;bottom:16px;background:#0f1f15;border:1px solid #1f3b2a;border-radius:12px;padding:10px 14px}
+</style>
+
+</head>
+<body>
+<div class="appbar">
+  <strong>🗒️ Notes&nbsp;Elite</strong>
+  <span class="badge">Fast-survey skin</span>
+  <div style="margin-left:auto;display:flex;gap:8px">
+    <button class="button" id="btnReset">Reset</button>
+    <button class="button" id="btnInstall" hidden>Install</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h1>Depot notes — assisted builder</h1>
+    <p>Choose tiles below; we’ll auto-compose Depot sections based on <code>Options.txt</code>, enrich with What3Words &amp; water model, and export clean JSON.</p>
+
+    <div class="grid" id="quickInputs">
+      <div class="card">
+        <h3>📍 Location (What3Words)</h3>
+        <label>3&nbsp;words or lat,long
+          <input id="w3wInput" placeholder="filled.count.soap  or  50.7341,-1.7763" />
+        </label>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="button" id="btnResolveW3W">Resolve</button>
+          <button class="button" id="btnUseDevice">Use device GPS</button>
+        </div>
+        <div id="w3wResult" style="margin-top:8px" class="badge">No location yet</div>
+        <small>Uses your Worker if set <span class="kbd">W3W_PROXY</span>; otherwise direct 3WA text is stored.</small>
+      </div>
+
+      <div class="card">
+        <h3>🧠 Readability (Cloudflare API)</h3>
+        <label><input type="checkbox" id="chkReadable" checked> Clean up/format notes via Cloudflare</label>
+        <label style="margin-top:6px">API Endpoint
+          <input id="readableEndpoint" placeholder="https://survey-brain-api.martinbibb.workers.dev/clean" />
+        </label>
+      </div>
+
+      <div class="card">
+        <h3>📡 Background telemetry</h3>
+        <label><input type="checkbox" id="chkTelemetry"> Send anonymised structure for quote-tool design</label>
+        <label style="margin-top:6px">Telemetry Endpoint
+          <input id="telemetryEndpoint" placeholder="https://survey-brain-api.martinbibb.workers.dev/telemetry" />
+        </label>
+        <small>Only schema & counts; no PII unless you add it.</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Pick notes from <code>Options.txt</code></h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <label style="flex:1 1 380px">Depot-notes Options.txt URL
+        <input id="optionsUrl" value="https://raw.githubusercontent.com/martinbibb-cmd/Depot-notes/refs/heads/main/Options.txt" />
+      </label>
+      <button class="button" id="btnLoadOptions">Load</button>
+      <span id="optionsStatus" class="badge">idle</span>
+    </div>
+
+    <div id="optionsTiles" class="grid" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>System recommendation</h2>
+    <div class="grid">
+      <div class="tile">
+        <label>Headline recommendation
+          <input id="sysHeadline" placeholder="e.g. Vaillant ecoFIT system + Mixergy 210L" />
+        </label>
+        <label style="margin-top:8px">Why this system?
+          <textarea id="sysWhy" rows="4" placeholder="Heat-loss, hot-water demand, flue route, controls, future-proofing…"></textarea>
+        </label>
+      </div>
+      <div class="tile">
+        <strong>Hot-Water Model</strong>
+        <iframe id="hotWaterFrame" loading="lazy" style="width:100%;height:360px;border:1px solid #1f2a37;border-radius:10px"
+          src="https://martinbibb-cmd.github.io/Depot-notes/hot-water-model.html"></iframe>
+        <small>Embedded from Depot-notes. Adjust there; summary is pulled into the section when exporting.</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Live sections</h2>
+    <div id="sectionPills"></div>
+    <hr />
+    <div class="grid" id="sectionsGrid"></div>
+  </div>
+
+  <div class="card">
+    <h2>Output</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="button" id="btnBuild">Build Draft</button>
+      <button class="button" id="btnClean">Clean via Cloudflare</button>
+      <button class="button" id="btnCopyText">Copy Text</button>
+      <button class="button" id="btnDownloadJSON">Download JSON</button>
+    </div>
+    <h3 style="margin-top:10px">Preview</h3>
+    <div id="preview" class="copybox" aria-live="polite"></div>
+  </div>
+
+  <footer>
+    Sources: Fast-survey cosmetics & structure; Depot-notes Options and Hot-Water Model. This page stores data locally until you export.
+  </footer>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* -------------------- CONFIG -------------------- */
+const CFG = {
+  W3W_PROXY: localStorage.getItem('W3W_PROXY') || 'https://w3w-proxy.martinbibb.workers.dev',
+  READABLE_API: document.getElementById('readableEndpoint').value,
+  TELEMETRY_API: document.getElementById('telemetryEndpoint').value,
+  DEFAULT_SECTIONS: [
+    "Customer details","Property","Existing system","New system","Flue & terminal",
+    "Condensate & waste","Gas & meter","Electrical & controls","Cylinders & HW",
+    "Access & WAH","H&S / Asbestos","Observations","System recommendation"
+  ]
+};
+
+// PWA prompt
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); deferredPrompt = e; document.getElementById('btnInstall').hidden = false;
+});
+document.getElementById('btnInstall').onclick = async () => { if (!deferredPrompt) return;
+  deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; };
+
+/* -------------------- UTIL -------------------- */
+const $ = (id)=>document.getElementById(id);
+const toast = (msg)=>{ const t=$('toast'); t.textContent=msg; t.hidden=false; setTimeout(()=>t.hidden=true,1800); };
+const save = ()=> localStorage.setItem('notes-elite', JSON.stringify(state));
+const load = ()=> { try{ return JSON.parse(localStorage.getItem('notes-elite')||'{}'); }catch{ return {}; } };
+const sanitize = (s)=> (s||'').toString().replace(/[<>]/g,'');
+
+/* -------------------- STATE -------------------- */
+const state = Object.assign({
+  sections:{}, selected:{}, w3w:null, gps:null, hotWaterSummary:'',
+  sys:{headline:'', why:''}, optionsText:'', optionsUrl: $('optionsUrl').value
+}, load());
+
+$('optionsUrl').value = state.optionsUrl;
+
+/* -------------------- OPTIONS.TXT LOADER -------------------- */
+/* Heuristic parser: sections start with [Section], bullets start with '-', key: value pairs supported. */
+function parseOptions(txt){
+  const lines = txt.split(/\r?\n/);
+  const out = {}; let current = null;
+  for (const raw of lines){
+    const line = raw.trim();
+    if(!line) continue;
+    const sec = line.match(/^\[(.+?)\]\s*$/);
+    if(sec){ current = sec[1]; out[current]=out[current]||[]; continue; }
+    if(line.startsWith('- ')){ out[current]=out[current]||[]; out[current].push(line.slice(2)); continue; }
+    const kv = line.match(/^([^:]+):\s*(.+)$/);
+    if(kv){ out[current]=out[current]||[]; out[current].push(kv[1].trim()+': '+kv[2].trim()); continue; }
+    // plain line
+    if(current){ out[current].push(line); }
+  }
+  return out;
+}
+
+async function loadOptions(){
+  const url = $('optionsUrl').value.trim();
+  state.optionsUrl = url; save();
+  $('optionsStatus').textContent = 'loading…';
+  try{
+    const r = await fetch(url, {cache:'no-store'});
+    const t = await r.text();
+    state.optionsText = t; save();
+    const parsed = parseOptions(t);
+    renderTiles(parsed);
+    $('optionsStatus').textContent = 'loaded';
+  }catch(e){
+    $('optionsStatus').textContent = 'error';
+    toast('Failed to load Options.txt');
+  }
+}
+$('btnLoadOptions').onclick = loadOptions;
+if (state.optionsText){ renderTiles(parseOptions(state.optionsText)); }
+
+/* -------------------- TILES FROM OPTIONS -------------------- */
+function renderTiles(parsed){
+  const tiles = $('optionsTiles');
+  tiles.innerHTML = '';
+  // show as sections -> choices
+  Object.entries(parsed).forEach(([section, items])=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'card';
+    const h = document.createElement('h3'); h.textContent = section;
+    wrap.appendChild(h);
+
+    const grid = document.createElement('div'); grid.className='grid';
+    items.forEach((text, idx)=>{
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.tabIndex = 0;
+      tile.dataset.section = section;
+      tile.dataset.idx = idx;
+      tile.textContent = text;
+      tile.onclick = ()=> toggleTile(tile);
+      grid.appendChild(tile);
+    });
+    wrap.appendChild(grid);
+    tiles.appendChild(wrap);
+  });
+  // rebuild sections pane
+  renderSections();
+}
+
+function toggleTile(tile){
+  const key = tile.dataset.section;
+  const idx = tile.dataset.idx;
+  state.selected[key] = state.selected[key] || {};
+  state.selected[key][idx] = !state.selected[key][idx];
+  tile.classList.toggle('active', !!state.selected[key][idx]);
+  renderSections();
+  save();
+}
+
+/* -------------------- LIVE SECTIONS -------------------- */
+function renderSections(){
+  const pills = $('sectionPills'); pills.innerHTML = '';
+  const grid = $('sectionsGrid'); grid.innerHTML = '';
+
+  const sectionNames = Array.from(new Set([...CFG.DEFAULT_SECTIONS, ...Object.keys(state.selected||{})]));
+  sectionNames.forEach(name=>{
+    const pill = document.createElement('span'); pill.className='section-pill'; pill.textContent = name;
+    pills.appendChild(pill);
+
+    const card = document.createElement('div'); card.className='card';
+    const h = document.createElement('h3'); h.textContent = name; card.appendChild(h);
+
+    // compose body from selected tiles for this section + system recommendation extra
+    const body = [];
+    const sel = state.selected[name] || {};
+    const parsed = state.optionsText ? parseOptions(state.optionsText) : {};
+    if(parsed[name]){
+      parsed[name].forEach((t, i)=>{ if(sel[i]) body.push('• '+t); });
+    }
+    if(name === 'System recommendation'){
+      if(state.sys.headline) body.unshift('Recommendation: '+state.sys.headline);
+      if(state.sys.why) body.push('Why: '+state.sys.why);
+      if(state.hotWaterSummary) body.push('Hot-water model: '+state.hotWaterSummary);
+      if(state.w3w?.words) body.push('What3Words: ///'+state.w3w.words);
+    }
+    // free edit box
+    const ta = document.createElement('textarea');
+    ta.rows = 6; ta.placeholder = 'Add/override notes…';
+    ta.value = (state.sections[name]?.free || '');
+    ta.oninput = ()=>{ state.sections[name] = state.sections[name]||{}; state.sections[name].free = ta.value; save(); };
+    const pre = document.createElement('div'); pre.className='copybox';
+    pre.textContent = body.concat([ta.value]).filter(Boolean).join('\n');
+
+    card.appendChild(pre);
+    card.appendChild(ta);
+    grid.appendChild(card);
+  });
+}
+
+/* Mirror system inputs into state */
+$('sysHeadline').value = state.sys.headline||'';
+$('sysWhy').value = state.sys.why||'';
+$('sysHeadline').oninput = (e)=>{ state.sys.headline = sanitize(e.target.value); save(); renderSections(); };
+$('sysWhy').oninput = (e)=>{ state.sys.why = sanitize(e.target.value); save(); renderSections(); };
+
+/* -------------------- HOT WATER SUMMARY BRIDGE -------------------- */
+/* Try to read a summary string from the embedded tool via postMessage (opt-in) */
+window.addEventListener('message', (evt)=>{
+  try{
+    if(typeof evt.data === 'object' && evt.data && evt.data.type === 'HOT_WATER_SUMMARY'){
+      state.hotWaterSummary = sanitize(evt.data.summary||'');
+      save(); renderSections(); toast('Hot-water summary received');
+    }
+  }catch{}
+}, false);
+
+/* -------------------- WHAT3WORDS -------------------- */
+async function resolveW3W(input){
+  const val = input.trim();
+  // Accept ///words.words.words, words.words.words, or lat,long
+  const coord = val.match(/^\s*(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)\s*$/);
+  try{
+    let result = null;
+    if(coord){
+      // Try Worker first
+      result = await tryFetch(`${CFG.W3W_PROXY}/convert-to-3wa?lat=${coord[1]}&lng=${coord[3]}`);
+      if(!result?.words){ result = { coordinates:{lat:+coord[1], lng:+coord[3]}, words:null }; }
+    }else{
+      const words = val.replace(/^\/*/,'').replace(/^w3w:/,'').trim();
+      result = await tryFetch(`${CFG.W3W_PROXY}/convert-to-coords?words=${encodeURIComponent(words)}`);
+      if(!result?.coordinates){ result = { words, coordinates:null }; }
+      result.words = result.words || words;
+    }
+    state.w3w = result; save();
+    $('w3wResult').textContent = result.words ? `///${result.words}` :
+      (result.coordinates ? `${result.coordinates.lat},${result.coordinates.lng}` : 'Unresolved');
+  }catch(e){
+    $('w3wResult').textContent = 'Unresolved';
+  }
+}
+
+async function tryFetch(url){
+  const r = await fetch(url, {method:'GET'});
+  if(!r.ok) throw new Error('Bad response');
+  return r.json();
+}
+
+$('btnResolveW3W').onclick = ()=> resolveW3W($('w3wInput').value);
+$('btnUseDevice').onclick = ()=> navigator.geolocation?.getCurrentPosition(
+  pos=> resolveW3W(`${pos.coords.latitude},${pos.coords.longitude}`),
+  ()=> toast('GPS unavailable'));
+
+/* -------------------- BUILD / CLEAN / EXPORT -------------------- */
+function buildDraft(){
+  const sectionNames = Array.from(new Set([...CFG.DEFAULT_SECTIONS, ...Object.keys(state.selected||{})]));
+  const bodyBySection = {};
+  const parsed = state.optionsText ? parseOptions(state.optionsText) : {};
+  sectionNames.forEach(name=>{
+    const sel = state.selected[name] || {};
+    const blocks = [];
+    if(parsed[name]) parsed[name].forEach((t,i)=>{ if(sel[i]) blocks.push('• '+t); });
+    if(state.sections[name]?.free) blocks.push(state.sections[name].free);
+    if(name==='System recommendation'){
+      if(state.sys.headline) blocks.unshift('Recommendation: '+state.sys.headline);
+      if(state.sys.why) blocks.push('Why: '+state.sys.why);
+      if(state.hotWaterSummary) blocks.push('Hot-water model: '+state.hotWaterSummary);
+      if(state.w3w?.words) blocks.push('What3Words: ///'+state.w3w.words);
+    }
+    bodyBySection[name] = blocks.filter(Boolean).join('\n').trim();
+  });
+
+  // preview text
+  const preview = Object.entries(bodyBySection)
+    .filter(([,v])=>v)
+    .map(([k,v])=>`# ${k}\n${v}`).join('\n\n');
+  $('preview').textContent = preview || 'No content yet.';
+  state.lastBuilt = { bodyBySection, preview, ts: Date.now() }; save();
+
+  // optional telemetry (schema only)
+  if($('chkTelemetry').checked && $('telemetryEndpoint').value.trim()){
+    const schema = {
+      ts: Date.now(),
+      sections: Object.keys(bodyBySection).length,
+      selectedCounts: Object.fromEntries(Object.entries(state.selected||{}).map(([k,v])=>[k, Object.values(v).filter(Boolean).length])),
+      hasW3W: !!state.w3w?.words
+    };
+    fetch($('telemetryEndpoint').value.trim(), {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(schema)}).catch(()=>{});
+  }
+}
+
+async function cleanDraft(){
+  if(!$('chkReadable').checked || !$('readableEndpoint').value.trim()) return toast('Readability disabled');
+  const text = state.lastBuilt?.preview || buildDraftAndReturn();
+  try{
+    const r = await fetch($('readableEndpoint').value.trim(), {method:'POST', headers:{'content-type':'text/plain'}, body:text});
+    const t = await r.text();
+    $('preview').textContent = t; toast('Cleaned');
+  }catch{ toast('Clean failed'); }
+}
+function buildDraftAndReturn(){ buildDraft(); return state.lastBuilt.preview; }
+
+function copyText(){
+  const text = $('preview').textContent;
+  navigator.clipboard.writeText(text).then(()=>toast('Copied'));
+}
+function downloadJSON(){
+  const data = state.lastBuilt?.bodyBySection || {};
+  const out = {
+    meta:{
+      createdAt: new Date().toISOString(),
+      w3w: state.w3w || null
+    },
+    sections: data
+  };
+  const blob = new Blob([JSON.stringify(out,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `depot-notes_${new Date().toISOString().replace(/[:.]/g,'-')}.json`; a.click();
+}
+
+$('btnBuild').onclick = buildDraft;
+$('btnClean').onclick = cleanDraft;
+$('btnCopyText').onclick = copyText;
+$('btnDownloadJSON').onclick = downloadJSON;
+
+/* -------------------- RESET -------------------- */
+$('btnReset').onclick = ()=>{
+  localStorage.removeItem('notes-elite');
+  state.sections={}; state.selected={}; state.sys={}; state.w3w=null; state.hotWaterSummary='';
+  $('preview').textContent=''; renderSections(); toast('Reset');
+};
+
+/* -------------------- BOOT -------------------- */
+window.addEventListener('load', ()=>{
+  // set persisted toggles/inputs
+  $('readableEndpoint').value = state.readableEndpoint || $('readableEndpoint').value;
+  $('telemetryEndpoint').value = state.telemetryEndpoint || $('telemetryEndpoint').value;
+  $('chkTelemetry').checked = !!state.chkTelemetry;
+
+  // wire persistence
+  $('readableEndpoint').oninput = (e)=>{ state.readableEndpoint = e.target.value; save(); };
+  $('telemetryEndpoint').oninput = (e)=>{ state.telemetryEndpoint = e.target.value; save(); };
+  $('chkTelemetry').onchange = (e)=>{ state.chkTelemetry = e.target.checked; save(); };
+
+  // auto-load options if we have them
+  if(state.optionsText){ $('optionsStatus').textContent='loaded'; } else { loadOptions(); }
+
+  // initial render
+  renderSections();
+});
+</script>
+</body>
+</html>
