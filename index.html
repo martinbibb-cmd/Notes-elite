@@ -3,556 +3,662 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Notes Elite — New UI</title>
-<meta name="theme-color" content="#0a0e13" />
+<title>Notes Elite — Full Tiles Wizard</title>
+<meta name="theme-color" content="#0b1016" />
 
-<!-- ⚠️ BRANDING: we only borrow GRAPHICS (no CSS/JS) from Fast-survey -->
+<!-- Decorative graphics borrowed from Fast-survey (images only; no CSS/JS) -->
 <link rel="preload" as="image" href="https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg">
 <link rel="preload" as="image" href="https://martinbibb-cmd.github.io/Fast-survey/assets/branch.svg">
 
 <style>
-/* =========================
-   NEW, STANDALONE UI (no FS CSS)
-   Goals:
-   - No body scrolling jiggle
-   - Fixed frame with internal scroll areas
-   - Zero horizontal overflow
-   - Efficient information density
-   ========================= */
 :root{
-  --bg: #0a0e13;
-  --bg-elev: #0d141b;
-  --panel: #0f1722;
-  --muted: #c8d4e1;
-  --soft: #1b2836;
-  --brand: #7cc4ff;
-  --ok: #35b470;
-  --warn: #f6c14b;
-  --danger: #ff6a6a;
-  --ink: #e8f0f6;
-  --shadow: 0 1px 0 rgba(255,255,255,.02) inset, 0 12px 50px rgba(0,0,0,.35);
+  --bg:#0b1016; --panel:#0f1720; --ink:#e8f0f6; --muted:#cbd6e1;
+  --line:#152738; --brand:#7cc4ff; --ok:#2ecc71; --warn:#ffc857;
+  --tile:#0b141f; --tile2:#0d1a26; --tileActive:#0f2218; --tileLine:#21445f;
 }
-
-*{ box-sizing: border-box; }
-html,body{ height:100%; }
-html{ color-scheme: dark; }
-body{
-  margin:0; background: var(--bg); color: var(--ink);
-  font: 14.5px/1.45 ui-sans-serif, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-  overflow:hidden; /* 👉 kill page scroll; we control it */
-}
-
-/* App frame */
+*{box-sizing:border-box}
+html,body{height:100%}
+html{color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 ui-sans-serif,-apple-system,Segoe UI,Roboto,Arial;overflow:hidden}
 .app{
-  height: 100dvh; /* full viewport, mobile safe */
-  display: grid;
-  grid-template-rows: 56px 1fr 52px; /* header + content + action bar */
-  grid-template-columns: 100%;
+  height:100dvh; display:grid; grid-template-rows:56px 1fr 56px;
   background:
     url("https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg") right -40px top -40px/220px no-repeat,
     url("https://martinbibb-cmd.github.io/Fast-survey/assets/branch.svg") left -40px bottom -40px/220px no-repeat,
-    linear-gradient(180deg,#0a0e13, #0a0e13 60%, #0b1118);
+    linear-gradient(180deg,#0b1016,#0b1016 60%,#0a0f15);
 }
+.header{display:flex;align-items:center;gap:12px;padding:0 14px;background:#0c151f;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--brand);box-shadow:0 0 10px var(--brand)}
+.stepper{margin-left:auto;font-size:12px;opacity:.9}
 
-/* Header */
-.header{
-  display:flex; align-items:center; gap:12px;
-  padding:0 14px; background:var(--bg-elev); border-bottom:1px solid #10202d;
+.content{position:relative;overflow:hidden}
+.page{
+  position:absolute; inset:0; padding:14px; display:flex; flex-direction:column; gap:12px;
+  transform:translateX(100%); opacity:0; pointer-events:none; transition:transform .18s ease,opacity .18s ease;
 }
-.header .brand{ display:flex; align-items:center; gap:10px; }
-.brand .dot{ width:10px;height:10px;border-radius:50%; background:var(--brand); box-shadow:0 0 10px var(--brand);}
-.header .title{ font-weight:700; letter-spacing:.2px }
-.header .hint{ margin-left:auto; opacity:.8; font-size:12px }
-
-/* Content split */
-.content{
-  display:grid; grid-template-columns: 320px 1fr; gap:12px;
-  padding:12px; overflow:hidden; /* lock container */
+.page.active{transform:translateX(0);opacity:1;pointer-events:auto}
+.page .title{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.grid{
+  flex:1; overflow:auto; overscroll-behavior:contain;
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px;
+  padding:2px;
 }
-@media (max-width: 980px){
-  .content{ grid-template-columns: 1fr; }
-  .sidebar{ order:2; height:36dvh; }
-  .main{ order:1; height: calc(100% - 12px - 12px); }
-}
-
-/* Scroll panes */
-.sidebar, .main{
-  background: var(--panel); border:1px solid #122232; border-radius:16px; box-shadow: var(--shadow);
-  overflow:auto; overscroll-behavior: contain;
-}
-
-/* Sidebar */
-.sidebar .h{ padding:12px 14px; position:sticky; top:0; background:linear-gradient(#101823, #0f1722 80%); border-bottom:1px solid #122232; z-index:1 }
-.sidebar .group{ padding:12px; display:grid; gap:12px }
-
-/* Mini cards */
-.card{
-  background: #0d1620; border:1px solid #132639; border-radius:12px; padding:10px;
-}
-.card h4{ margin:0 0 8px 0; font-size:13px; letter-spacing:.2px; opacity:.9 }
-.card .row{ display:flex; gap:8px; flex-wrap:wrap; }
-.card input, .card textarea{
-  width:100%; background:#0a121c; color:var(--ink); border:1px solid #1a2b3d;
-  padding:10px 11px; border-radius:10px; outline:none;
-}
-.card textarea{ resize:vertical; min-height:84px; }
-
-/* Tiles */
-.tiles{ display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:10px; }
 .tile{
-  background:#0a121c; border:1px dashed #24405a; border-radius:12px; padding:10px; cursor:pointer; transition: transform .06s ease;
+  background:linear-gradient(180deg,var(--tile),var(--tile2)); border:1px solid var(--tileLine);
+  border-radius:14px; padding:12px; cursor:pointer; display:flex; flex-direction:column; gap:8px;
+  min-height:120px; transition:transform .06s ease, border-color .1s ease, background .1s ease;
 }
-.tile:hover{ transform: translateY(-1px); }
-.tile.active{ border-style:solid; border-color: var(--ok); background:#0e1b14; }
+.tile:hover{ transform:translateY(-1px) }
+.tile.active{ border-color:var(--ok); background:var(--tileActive) }
+.tile .t{font-weight:700}
+.tile .s{font-size:12px;opacity:.9}
+.tile .img{
+  height:40px; opacity:.9; background:url("https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg") right/contain no-repeat;
+  mix-blend-mode:screen; filter:brightness(1.2);
+}
 
-/* Main area */
-.main .h{ padding:12px 14px; position:sticky; top:0; background:linear-gradient(#101823, #0f1722 80%); border-bottom:1px solid #122232; z-index:1 }
-.section-pills{ display:flex; gap:8px; flex-wrap:wrap; padding:12px 12px 0 }
-.pill{ border:1px solid #22364a; background:#0b1520; border-radius:999px; padding:6px 10px; font-size:12px; opacity:.95 }
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.input, textarea, select{
+  width:100%; background:#0a121c; color:var(--ink); border:1px solid #1a2b3d; border-radius:10px; padding:10px 12px; outline:none
+}
+textarea{resize:vertical;min-height:84px}
 
-.sections{ padding:12px; display:grid; grid-template-columns: repeat(auto-fill,minmax(320px,1fr)); gap:12px }
-.section{
-  background:#0d1620; border:1px solid #152a3d; border-radius:12px; padding:10px;
-}
-.section h3{ margin:0 0 8px 0; font-size:15px; }
-.copybox{
-  background:#0a121c; border:1px solid #192b3c; border-radius:10px; padding:10px; min-height:120px; max-height:220px; overflow:auto; white-space:pre-wrap;
-}
-.section textarea{ margin-top:8px }
-
-/* Action bar */
-.actions{
-  display:flex; gap:8px; align-items:center; justify-content:center;
-  padding:8px; background:var(--bg-elev); border-top:1px solid #10202d;
-}
+.footer{display:flex;gap:8px;align-items:center;justify-content:center;padding:8px;background:#0c151f;border-top:1px solid var(--line)}
 .btn{
-  appearance:none; border:1px solid #21405a; background:#112233; color:var(--ink);
-  padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600;
+  appearance:none;border:1px solid #21405a;background:#112233;color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600
 }
-.btn.primary{ border-color:#1f4d83; background:#113459; }
-.btn.good{ border-color:#1c5f3a; background:#0f2a1c; }
-.btn:active{ transform: translateY(1px); }
+.btn.primary{border-color:#1f4d83;background:#113459}
+.btn.good{border-color:#1c5f3a;background:#0f2a1c}
+.btn.warn{border-color:#735a1a;background:#2b2410}
+.btn:active{transform:translateY(1px)}
+.kbd{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0a121c;border:1px solid #1f2a37;border-bottom-width:2px;border-radius:6px;padding:2px 6px}
 
-/* Helpers */
-.kbd{ font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0a121c; border:1px solid #1f2a37; border-bottom-width:2px;border-radius:6px;padding:2px 6px }
-.badge{ font-size:12px; opacity:.85; }
-hr{ border:0; border-top:1px solid #122232; margin:10px 0; }
-.hidden{ display:none !important; }
-.toast{
-  position:fixed; right:12px; bottom:12px; background:#0f1f15; border:1px solid #1f3b2a;
-  padding:10px 12px; border-radius:12px; box-shadow: var(--shadow);
+/* Modal */
+.modalBack{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal{width:min(720px,96vw);background:#0e1722;border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.modal .row{display:flex;gap:8px;flex-wrap:wrap}
+.modal .badge{font-size:12px;opacity:.9}
+.show{display:flex !important}
+
+/* Summary panel */
+.summary{
+  background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; display:grid; gap:10px
 }
+.copybox{white-space:pre-wrap;background:#0a121c;border:1px solid #1a2b3d;border-radius:10px;padding:10px;max-height:38dvh;overflow:auto}
+hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.small{font-size:12px;opacity:.85}
+
+/* No horizontal overflow anywhere */
+html,body,.content,.page{overflow-x:hidden}
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- HEADER -->
   <div class="header">
-    <div class="brand"><span class="dot"></span><span class="title">Notes&nbsp;Elite</span></div>
-    <span class="badge">New frame • zero dead space</span>
-    <div class="hint">Tip: <span class="kbd">⌘</span>/<span class="kbd">Ctrl</span>+<span class="kbd">K</span> to build</div>
+    <div class="brand"><span class="dot"></span><span>Notes&nbsp;Elite</span></div>
+    <div class="stepper"><span id="stepText">Step 1 of 13</span> • <span class="small">Use <span class="kbd">←</span>/<span class="kbd">→</span></span></div>
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-      <div class="h"><strong>Inputs</strong></div>
-      <div class="group">
+    <!-- 1 CUSTOMER / PROPERTY -->
+    <section class="page active" data-page="0">
+      <div class="title"><strong>Customer & Property</strong></div>
+      <div class="grid">
+        <!-- Property type -->
+        <div class="tile" data-g="propertyType" data-t="single" data-v="Flat"><div class="img"></div><div class="t">Flat</div><div class="s">Single-storey dwelling</div></div>
+        <div class="tile" data-g="propertyType" data-t="single" data-v="Terraced"><div class="img"></div><div class="t">Terraced</div><div class="s">Mid or end terrace</div></div>
+        <div class="tile" data-g="propertyType" data-t="single" data-v="Semi-detached"><div class="img"></div><div class="t">Semi-detached</div><div class="s">Shares one side wall</div></div>
+        <div class="tile" data-g="propertyType" data-t="single" data-v="Detached"><div class="img"></div><div class="t">Detached</div><div class="s">No shared walls</div></div>
 
-        <div class="card">
-          <h4>📍 What3Words</h4>
-          <input id="w3wInput" placeholder="filled.count.soap  or  50.7341,-1.7763" />
-          <div class="row" style="margin-top:8px">
-            <button class="btn" id="btnResolveW3W">Resolve</button>
-            <button class="btn" id="btnGPS">Use GPS</button>
-          </div>
-          <div id="w3wBadge" class="badge" style="display:block;margin-top:8px;opacity:.9">No location yet</div>
-        </div>
+        <!-- Bedrooms -->
+        <div class="tile" data-g="bedrooms" data-t="single" data-v="1-2"><div class="img"></div><div class="t">1–2 beds</div><div class="s">Compact demand</div></div>
+        <div class="tile" data-g="bedrooms" data-t="single" data-v="3"><div class="img"></div><div class="t">3 beds</div><div class="s">Typical family home</div></div>
+        <div class="tile" data-g="bedrooms" data-t="single" data-v="4+"><div class="img"></div><div class="t">4+ beds</div><div class="s">Higher HW demand</div></div>
 
-        <div class="card">
-          <h4>🧠 Readability (Cloudflare)</h4>
-          <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="chkReadable" checked> Enable</label>
-          <input id="readableEndpoint" placeholder="https://survey-brain-api.martinbibb.workers.dev/clean" style="margin-top:6px" />
-        </div>
-
-        <div class="card">
-          <h4>📡 Background telemetry</h4>
-          <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="chkTelemetry"> Send anonymised schema</label>
-          <input id="telemetryEndpoint" placeholder="https://survey-brain-api.martinbibb.workers.dev/telemetry" style="margin-top:6px" />
-          <small class="badge">Section counts only — no PII unless added by you.</small>
-        </div>
-
-        <div class="card">
-          <h4>🔗 Depot Options.txt</h4>
-          <input id="optionsUrl" value="https://raw.githubusercontent.com/martinbibb-cmd/Depot-notes/refs/heads/main/Options.txt" />
-          <div class="row" style="margin-top:8px">
-            <button class="btn" id="btnLoadOptions">Load</button>
-            <span id="optionsStatus" class="badge" style="align-self:center">idle</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <h4>🧩 System recommendation</h4>
-          <input id="sysHeadline" placeholder="e.g. Vaillant ecoFIT system + Mixergy 210L" />
-          <textarea id="sysWhy" placeholder="Why this system? Heat-loss, DHW demand, flue route, controls…"></textarea>
-        </div>
-
-        <div class="card">
-          <h4>🚿 Hot-Water Model</h4>
-          <iframe id="hotWaterFrame" loading="lazy" style="width:100%;height:260px;border:1px solid #1b3146;border-radius:10px"
-            src="https://martinbibb-cmd.github.io/Depot-notes/hot-water-model.html"></iframe>
-          <small class="badge">Summary auto-includes on export if the model posts <code>HOT_WATER_SUMMARY</code>.</small>
-        </div>
-
+        <!-- Insulation (multi) -->
+        <div class="tile" data-g="insulation" data-t="multi" data-v="Cavity filled"><div class="img"></div><div class="t">Cavity filled</div></div>
+        <div class="tile" data-g="insulation" data-t="multi" data-v="Loft insulated"><div class="img"></div><div class="t">Loft insulated</div></div>
+        <div class="tile" data-g="insulation" data-t="multi" data-v="Solid walls"><div class="img"></div><div class="t">Solid walls</div></div>
+        <div class="tile" data-g="insulation" data-t="multi" data-v="Single glazing"><div class="img"></div><div class="t">Single glazing</div></div>
       </div>
-    </aside>
+      <div class="controls">
+        <input class="input" id="cust-notes" placeholder="Any extra customer/property notes…" />
+      </div>
+    </section>
 
-    <!-- MAIN -->
-    <main class="main" id="main">
-      <div class="h"><strong>Composer</strong></div>
+    <!-- 2 EXISTING / NEW SYSTEM OVERVIEW -->
+    <section class="page" data-page="1">
+      <div class="title"><strong>Systems Overview</strong></div>
+      <div class="grid">
+        <div class="tile" data-g="existing" data-t="single" data-v="Regular"><div class="img"></div><div class="t">Existing: Regular</div></div>
+        <div class="tile" data-g="existing" data-t="single" data-v="System"><div class="img"></div><div class="t">Existing: System</div></div>
+        <div class="tile" data-g="existing" data-t="single" data-v="Combi"><div class="img"></div><div class="t">Existing: Combi</div></div>
+        <div class="tile" data-g="existing" data-t="single" data-v="Warm air"><div class="img"></div><div class="t">Existing: Warm air</div></div>
 
-      <section style="padding:0 12px 6px">
-        <div class="tiles" id="optionsTiles">
-          <!-- dynamic tiles from Options.txt -->
+        <div class="tile" data-g="proposed" data-t="single" data-v="Regular"><div class="img"></div><div class="t">New: Regular</div></div>
+        <div class="tile" data-g="proposed" data-t="single" data-v="System"><div class="img"></div><div class="t">New: System</div></div>
+        <div class="tile" data-g="proposed" data-t="single" data-v="Combi"><div class="img"></div><div class="t">New: Combi</div></div>
+      </div>
+      <div class="controls">
+        <input class="input" id="sys-headline" placeholder="System recommendation headline (e.g., Vaillant ecoFIT + Mixergy 210L)" />
+        <textarea id="sys-why" placeholder="Why this system? Heat-loss, DHW profile, flue route, future upgrades…"></textarea>
+      </div>
+    </section>
+
+    <!-- 3 BOILER DETAILS -->
+    <section class="page" data-page="2">
+      <div class="title"><strong>Boiler</strong></div>
+      <div class="grid">
+        <div class="tile" data-g="boilerLoc" data-t="single" data-v="Kitchen"><div class="img"></div><div class="t">Location: Kitchen</div></div>
+        <div class="tile" data-g="boilerLoc" data-t="single" data-v="Utility"><div class="img"></div><div class="t">Location: Utility</div></div>
+        <div class="tile" data-g="boilerLoc" data-t="single" data-v="Airing cupboard"><div class="img"></div><div class="t">Location: Airing cupboard</div></div>
+        <div class="tile" data-g="boilerLoc" data-t="single" data-v="Loft"><div class="img"></div><div class="t">Location: Loft</div></div>
+
+        <div class="tile" data-g="boilerAccess" data-t="multi" data-v="Good access"><div class="img"></div><div class="t">Good access</div></div>
+        <div class="tile" data-g="boilerAccess" data-t="multi" data-v="Restricted access"><div class="img"></div><div class="t">Restricted access</div></div>
+
+        <div class="tile" data-g="boilerCond" data-t="multi" data-v="Boiler condition fair"><div class="img"></div><div class="t">Condition: fair</div></div>
+        <div class="tile" data-g="boilerCond" data-t="multi" data-v="Boiler condition poor"><div class="img"></div><div class="t">Condition: poor</div></div>
+      </div>
+      <div class="controls">
+        <input class="input" id="boiler-make" placeholder="Make / Model (e.g., Vaillant ecoFIT Pure 418)" />
+        <input class="input" id="boiler-kW" placeholder="Boiler size (kW)" />
+        <input class="input" id="boiler-year" placeholder="Approx install year" />
+      </div>
+    </section>
+
+    <!-- 4 FLUE -->
+    <section class="page" data-page="3">
+      <div class="title"><strong>Flue & Terminal</strong></div>
+      <div class="grid">
+        <div class="tile" data-g="flue" data-t="single" data-v="Horizontal"><div class="img"></div><div class="t">Horizontal</div></div>
+        <div class="tile" data-g="flue" data-t="single" data-v="Vertical pitched"><div class="img"></div><div class="t">Vertical (pitched)</div></div>
+        <div class="tile" data-g="flue" data-t="single" data-v="Vertical flat"><div class="img"></div><div class="t">Vertical (flat)</div></div>
+        <div class="tile" data-g="flue" data-t="single" data-v="Direct rear"><div class="img"></div><div class="t">Direct rear</div></div>
+
+        <div class="tile" data-g="flueNotes" data-t="multi" data-v="Plume expected"><div class="img"></div><div class="t">Plume expected</div></div>
+        <div class="tile" data-g="flueNotes" data-t="multi" data-v="Terminal clearance tight"><div class="img"></div><div class="t">Clearance tight</div></div>
+        <div class="tile" data-g="flueNotes" data-t="multi" data-v="Flue reroute planned"><div class="img"></div><div class="t">Reroute planned</div></div>
+      </div>
+      <div class="controls">
+        <input class="input" id="flue-extra" placeholder="Flue notes (e.g., plume management kit, terminal position…)" />
+      </div>
+    </section>
+
+    <!-- 5 CONDENSATE -->
+    <section class="page" data-page="4">
+      <div class="title"><strong>Condensate & Waste</strong></div>
+      <div class="grid">
+        <div class="tile" data-g="condensate" data-t="single" data-v="Internal to waste"><div class="img"></div><div class="t">Internal → waste</div></div>
+        <div class="tile" data-g="condensate" data-t="single" data-v="External run"><div class="img"></div><div class="t">External run</div></div>
+        <div class="tile" data-g="condensate" data-t="single" data-v="Pump required"><div class="img"></div><div class="t">Pump required</div></div>
+        <div class="tile" data-g="condNotes" data-t="multi" data-v="Insulate external"><div class="img"></div><div class="t">Insulate external</div></div>
+        <div class="tile" data-g="condNotes" data-t="multi" data-v="Increase to 32 mm"><div class="img"></div><div class="t">32 mm upgrade</div></div>
+      </div>
+      <div class="controls">
+        <input class="input" id="cond-extra" placeholder="Condensate route details / traps / soakaway…"/>
+      </div>
+    </section>
+
+    <!-- 6 GAS & METER -->
+    <section class="page" data-page="5">
+      <div class="title"><strong>Gas & Meter</strong></div>
+      <div class="grid">
+        <div class="tile" data-g="gasMeterLoc" data-t="single" data-v="Internal"><div class="img"></div><div class="t">Meter: Internal</div></div>
+        <div class="tile" data-g="gasMeterLoc" data-t="single" data-v="External"><div class="img"></div><div class="t">Meter: External</div></div>
+        <div class="tile" data-g="gasPipe" data-t="single" data-v="22 mm"><div class="img"></div><div class="t">Pipe: 22 mm</div></div>
+        <div class="tile" data-g="gasPipe" data-t="single" data-v="28 mm"><div class="img"></div><div class="t">Pipe: 28 mm</div></div>
+        <div class="tile" data-g="gasPipe" data-t="single" data-v="Mixed / unknown"><div class="img"></div><div class="t">Pipe: Mixed/unknown</div></div>
+
+        <div class="tile" data-g="gasNotes" data-t="multi" data-v="Upgrade likely"><div class="img"></div><div class="t">Upgrade likely</div></div>
+        <div class="tile" data-g="gasNotes" data-t="multi" data-v="Allow for reroute"><div class="img"></div><div class="t">Allow reroute</div></div>
+        <div class="tile" data-g="gasNotes" data-t="multi" data-v="Tightness test issues"><div class="img"></div><div class="t">Test issues</div></div>
+      </div>
+      <div class="controls">
+        <input class="input" id="gas-extra" placeholder="Meter position, ECV access, MP rating, observed issues…"/>
+      </div>
+    </section>
+
+    <!-- 7 CYLINDER & HOT WATER -->
+    <section class="page" data-page="6">
+      <div class="title"><strong>Cylinder & Hot Water</strong></div>
+      <div class="grid">
+        <div class="tile" data-g="cylType" data-t="single" data-v="Unvented"><div class="img"></div><div class="t">Unvented</div></div>
+        <div class="tile" data-g="cylType" data-t="single" data-v="Vented (F&E)"><div class="img"></div><div class="t">Vented (F&E)</div></div>
+        <div class="tile" data-g="cylType" data-t="single" data-v="No cylinder"><div class="img"></div><div class="t">No cylinder</div></div>
+
+        <div class="tile" data-g="cylSpace" data-t="multi" data-v="Space adequate"><div class="img"></div><div class="t">Space adequate</div></div>
+        <div class="tile" data-g="cylSpace" data-t="multi" data-v="Space tight"><div class="img"></div><div class="t">Space tight</div></div>
+        <div class="tile" data-g="cylNotes" data-t="multi" data-v="G3 discharge route clear"><div class="img"></div><div class="t">G3 discharge clear</div></div>
+        <div class="tile" data-g="cylNotes" data-t="multi" data-v="Discharge reroute required"><div class="img"></div><div class="t">Discharge reroute</div></div>
+      </div>
+      <div class="controls">
+        <input class="input" id="cyl-size" placeholder="Cylinder size (L) e.g., 170 / 210 / 250" />
+        <input class="input" id="cyl-make" placeholder="Cylinder make/model (Mixergy, Megaflo…)" />
+        <input class="input" id="cyl-extra" placeholder="Coil config, immersion, location, venting…" />
+      </div>
+    </section>
+
+    <!-- 8 RADIATORS -->
+    <section class="page" data-page="7">
+      <div class="title"><strong>Radiators</strong></div>
+      <div class="grid">
+        <div class="tile" data-g="rads" data-t="multi" data-v="TRVs present"><div class="img"></div><div class="t">TRVs present</div></div>
+        <div class="tile" data-g="rads" data-t="multi" data-v="TRVs missing on some"><div class="img"></div><div class="t">TRVs missing on some</div></div>
+        <div class="tile" data-g="rads" data-t="multi" data-v="Bypass required"><div class="img"></div><div class="t">Bypass required</div></div>
+        <div class="tile" data-g="rads" data-t="multi" data-v="Microbore present"><div class="img"></div><div class="t">Microbore present</div></div>
+      </div>
+      <div class="controls">
+        <input class="input" id="rad-count" placeholder="Approx number of radiators" />
+        <input class="input" id="rad-extra" placeholder="Any cold rooms, towel rails, extra upgrades…"/>
+      </div>
+    </section>
+
+    <!-- 9 FLUSH & FILTER -->
+    <section class="page" data-page="8">
+      <div class="title"><strong>Flush & Filter</strong></div>
+      <div class="grid">
+        <div class="tile" data-g="flush" data-t="single" data-v="Chemical flush"><div class="img"></div><div class="t">Chemical flush</div></div>
+        <div class="tile" data-g="flush" data-t="single" data-v="Powerflush"><div class="img"></div><div class="t">Powerflush</div></div>
+        <div class="tile" data-g="flush" data-t="single" data-v="No flush required"><div class="img"></div><div class="t">No flush</div></div>
+
+        <div class="tile" data-g="filter" data-t="single" data-v="Magnetic filter"><div class="img"></div><div class="t">Magnetic filter</div></div>
+        <div class="tile" data-g="filter" data-t="single" data-v="Strainer"><div class="img"></div><div class="t">Strainer</div></div>
+        <div class="tile" data-g="filter" data-t="single" data-v="No filter"><div class="img"></div><div class="t">No filter</div></div>
+      </div>
+      <div class="controls">
+        <input class="input" id="flush-extra" placeholder="Sludge evidence, dirty water, inhibitor plan, filter location…"/>
+      </div>
+    </section>
+
+    <!--10 CONTROLS & ELECTRICAL -->
+    <section class="page" data-page="9">
+      <div class="title"><strong>Controls & Electrical</strong></div>
+      <div class="grid">
+        <div class="tile" data-g="controls" data-t="multi" data-v="Weather comp"><div class="img"></div><div class="t">Weather comp</div></div>
+        <div class="tile" data-g="controls" data-t="multi" data-v="OpenTherm/Bus"><div class="img"></div><div class="t">OpenTherm/Bus</div></div>
+        <div class="tile" data-g="controls" data-t="multi" data-v="Smart stat"><div class="img"></div><div class="t">Smart stat</div></div>
+        <div class="tile" data-g="controls" data-t="multi" data-v="Zoning"><div class="img"></div><div class="t">Zoning</div></div>
+
+        <div class="tile" data-g="electrical" data-t="multi" data-v="FCU required"><div class="img"></div><div class="t">FCU required</div></div>
+        <div class="tile" data-g="electrical" data-t="multi" data-v="RCBO/MCB upgrade"><div class="img"></div><div class="t">RCBO/MCB upgrade</div></div>
+        <div class="tile" data-g="electrical" data-t="multi" data-v="Bonding checks"><div class="img"></div><div class="t">Bonding checks</div></div>
+      </div>
+      <div class="controls">
+        <input class="input" id="ctrl-extra" placeholder="Control location, wiring centre, network coverage…"/>
+      </div>
+    </section>
+
+    <!--11 DELIVERY & PARKING + W3W (MANUAL, NO API) -->
+    <section class="page" data-page="10">
+      <div class="title"><strong>Delivery & Parking</strong><span class="small">Manual What3Words; no API dependency.</span></div>
+      <div class="grid">
+        <div class="tile" data-g="parking" data-t="single" data-v="On drive"><div class="img"></div><div class="t">On drive</div></div>
+        <div class="tile" data-g="parking" data-t="single" data-v="On street (near)"><div class="img"></div><div class="t">On street — near</div></div>
+        <div class="tile" data-g="parking" data-t="single" data-v="On street (far)"><div class="img"></div><div class="t">On street — far</div></div>
+        <div class="tile" data-g="parking" data-t="single" data-v="Permit required"><div class="img"></div><div class="t">Permit required</div></div>
+
+        <div class="tile" data-g="delivery" data-t="multi" data-v="Steps"><div class="img"></div><div class="t">Steps</div></div>
+        <div class="tile" data-g="delivery" data-t="multi" data-v="Tight access"><div class="img"></div><div class="t">Tight access</div></div>
+        <div class="tile" data-g="delivery" data-t="multi" data-v="No rear access"><div class="img"></div><div class="t">No rear access</div></div>
+
+        <div class="tile" id="w3wTile"><div class="img"></div><div class="t">What3Words</div><div class="s">Tap to enter 3 words or lat,long</div></div>
+      </div>
+      <div class="controls">
+        <input class="input" id="del-notes" placeholder="Delivery/parking notes (e.g., height restrictions, time limits…)" />
+        <span class="small">W3W captured: <strong id="w3wView">—</strong></span>
+      </div>
+    </section>
+
+    <!--12 ACCESS / WAH & H&S -->
+    <section class="page" data-page="11">
+      <div class="title"><strong>Access / WAH & H&S</strong></div>
+      <div class="grid">
+        <div class="tile" data-g="access" data-t="multi" data-v="Loft access OK"><div class="img"></div><div class="t">Loft access OK</div></div>
+        <div class="tile" data-g="access" data-t="multi" data-v="Working at height"><div class="img"></div><div class="t">Working at height</div></div>
+        <div class="tile" data-g="access" data-t="multi" data-v="Scaffold required"><div class="img"></div><div class="t">Scaffold required</div></div>
+        <div class="tile" data-g="hs" data-t="multi" data-v="Asbestos suspected"><div class="img"></div><div class="t">Asbestos suspected</div></div>
+        <div class="tile" data-g="hs" data-t="multi" data-v="Permit to work"><div class="img"></div><div class="t">Permit to work</div></div>
+      </div>
+      <div class="controls">
+        <textarea id="obs" placeholder="Observations, caveats, risks…"></textarea>
+      </div>
+    </section>
+
+    <!--13 SUMMARY -->
+    <section class="page" data-page="12">
+      <div class="title"><strong>Summary → Depot sections</strong></div>
+      <div class="summary">
+        <div class="controls">
+          <button class="btn" id="btnBuild">Build Summary</button>
+          <button class="btn primary" id="btnCopy">Copy Text</button>
+          <button class="btn good" id="btnJSON">Download JSON</button>
         </div>
-      </section>
-
-      <section class="section-pills" id="sectionPills"></section>
-
-      <section class="sections" id="sectionsGrid"></section>
-    </main>
+        <div id="summaryBox" class="copybox" aria-live="polite">No summary yet.</div>
+        <div class="small">Sections: Customer details, Property, Existing system, New system, Boiler, Flue & terminal, Condensate & waste, Gas & meter, Electrical & controls, Cylinders & HW, Radiators, Flush & Filter, Access & WAH, H&S / Asbestos, Delivery & Parking, Observations, System recommendation.</div>
+      </div>
+    </section>
   </div>
 
-  <!-- ACTION BAR -->
-  <div class="actions">
-    <button class="btn" id="btnBuild">Build Draft</button>
-    <button class="btn" id="btnClean">Clean via Cloudflare</button>
-    <button class="btn" id="btnCopy">Copy Text</button>
-    <button class="btn good" id="btnJSON">Download JSON</button>
-    <button class="btn" id="btnReset">Reset</button>
+  <div class="footer">
+    <button class="btn" id="prevBtn">← Back</button>
+    <button class="btn primary" id="nextBtn">Next →</button>
+    <button class="btn warn" id="resetBtn">Reset</button>
   </div>
 </div>
 
-<div id="toast" class="toast hidden"></div>
+<!-- What3Words modal (MANUAL NO-API) -->
+<div class="modalBack" id="w3wBack">
+  <div class="modal">
+    <strong>What3Words (manual capture — no API)</strong>
+    <div class="row"><input class="input" id="w3wInput" placeholder="filled.count.soap  or  50.7341,-1.7763" /></div>
+    <div class="row">
+      <button class="btn" id="w3wValidate">Validate format</button>
+      <button class="btn" id="w3wGPS">Use device GPS</button>
+      <span class="badge small" id="w3wStatus">Idle</span>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="w3wSave">Save</button>
+      <button class="btn" id="w3wClose">Close</button>
+    </div>
+    <span class="small">Accepts <code>word.word.word</code> (stored as-is) or <code>lat,long</code>. No network requests.</span>
+  </div>
+</div>
 
 <script>
-/* =========================
-   STATE
-   ========================= */
-const $ = (id)=>document.getElementById(id);
+/* --------- helpers --------- */
+const $  = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
+
+function save(){ localStorage.setItem('notes-elite-full', JSON.stringify(state)); }
+function load(){ try{ return JSON.parse(localStorage.getItem('notes-elite-full')||'{}'); }catch{ return {}; } }
+function oneOf(group){ if(!group) return ''; const k = Object.keys(group).find(x=>group[x]); return k||''; }
+function listOf(group){ if(!group) return []; return Object.keys(group).filter(x=>group[x]); }
+function has(group,val){ return !!(group && group[val]); }
+function sentence(parts){ return parts.filter(Boolean).join(' '); }
+
+/* --------- state --------- */
 const state = Object.assign({
-  sections:{},          // free text user edits
-  selected:{},          // { SectionName: { idx: true } }
-  optionsText:'',       // raw Options.txt
-  optionsUrl: $('optionsUrl').value,
-  sys:{ headline:'', why:'' },
-  w3w:null,
-  hotWaterSummary:'',
-  readableEndpoint: '',
-  telemetryEndpoint: '',
-  readableEnabled: true,
-  telemetryEnabled: false
+  page:0,
+  picks:{}, // group -> { value:true }
+  fields:{
+    custNotes:'',
+    sysHeadline:'',
+    sysWhy:'',
+    delNotes:'',
+    obs:'',
+    // boiler
+    boilerMake:'', boilerKW:'', boilerYear:'',
+    // flue / condensate / gas / cylinder / rads / flush / filter / controls
+    flueExtra:'', condExtra:'', gasExtra:'', cylSize:'', cylMake:'', cylExtra:'',
+    radCount:'', radExtra:'', flushExtra:'', ctrlExtra:''
+  },
+  w3w:null // { words? , coords? }
 }, load());
-let parsedOptions = state.optionsText ? parseOptions(state.optionsText) : {};
 
-applyInitial();
-renderSections();
-
-if(state.optionsText){
-  renderTiles();
-  $('optionsStatus').textContent = 'loaded';
-}else{
-  loadOptions();
-}
-
-/* =========================
-   LAYOUT SANITY: no horizontal overflow EVER
-   ========================= */
-(function lockHorizontal(){
-  const killers = [document.documentElement, document.body];
-  const clamp = ()=> killers.forEach(el=> el.style.overflowX='hidden');
-  window.addEventListener('resize', clamp, {passive:true});
-  clamp();
-})();
-
-/* =========================
-   STORAGE
-   ========================= */
-function save(){ localStorage.setItem('notes-elite-v2', JSON.stringify(state)); }
-function load(){ try{ return JSON.parse(localStorage.getItem('notes-elite-v2')||'{}'); }catch{ return {}; } }
-function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 1600); }
-
-/* =========================
-   OPTIONS.TXT PARSER
-   ========================= */
-function parseOptions(txt){
-  const lines = txt.split(/\r?\n/);
-  const out = {}; let cur = null;
-  for(const raw of lines){
-    const line = raw.trim();
-    if(!line) continue;
-    const m = line.match(/^\[(.+?)\]$/);
-    if(m){ cur=m[1]; if(!out[cur]) out[cur]=[]; continue; }
-    if(line.startsWith('- ')){ out[cur]=out[cur]||[]; out[cur].push(line.slice(2)); continue; }
-    const kv = line.match(/^([^:]+):\s*(.+)$/);
-    if(kv){ out[cur]=out[cur]||[]; out[cur].push(kv[1].trim()+': '+kv[2].trim()); continue; }
-    if(cur){ out[cur].push(line); }
-  }
-  return out;
-}
-
-/* =========================
-   RENDER: Tiles + Sections
-   ========================= */
-const DEFAULT_SECTIONS = [
-  "Customer details","Property","Existing system","New system","Flue & terminal",
-  "Condensate & waste","Gas & meter","Electrical & controls","Cylinders & HW",
-  "Access & WAH","H&S / Asbestos","Observations","System recommendation"
-];
-
-function renderTiles(){
-  const wrap = $('optionsTiles');
-  wrap.innerHTML = '';
-  Object.entries(parsedOptions).forEach(([section, items])=>{
-    // section heading card
-    const sectionCard = document.createElement('div');
-    sectionCard.className = 'tile';
-    sectionCard.style.borderStyle='solid';
-    sectionCard.style.background='#0e1a28';
-    sectionCard.style.cursor='default';
-    sectionCard.innerHTML = `<strong>${section}</strong><br><span class="badge">Tap to add lines below</span>`;
-    wrap.appendChild(sectionCard);
-
-    // items
-    items.forEach((text, idx)=>{
-      const t = document.createElement('div');
-      t.className='tile';
-      t.textContent = text;
-      t.dataset.section = section;
-      t.dataset.idx = idx;
-      if(state.selected?.[section]?.[idx]) t.classList.add('active');
-      t.onclick = ()=> toggleTile(t);
-      wrap.appendChild(t);
-    });
-  });
-  renderSections();
-}
-
-function toggleTile(el){
-  const s = el.dataset.section, i = el.dataset.idx;
-  state.selected[s] = state.selected[s] || {};
-  state.selected[s][i] = !state.selected[s][i];
-  el.classList.toggle('active', !!state.selected[s][i]);
+/* --------- navigation --------- */
+function go(n){
+  const max = 12;
+  state.page = Math.max(0, Math.min(max, n));
+  $$('.page').forEach(p=>p.classList.remove('active'));
+  $(`.page[data-page="${state.page}"]`).classList.add('active');
+  $('#stepText').textContent = `Step ${state.page+1} of ${max+1}`;
   save();
-  renderSections();
 }
-
-function renderSections(){
-  const pills = $('sectionPills'); pills.innerHTML='';
-  const grid = $('sectionsGrid'); grid.innerHTML='';
-
-  const names = Array.from(new Set([...DEFAULT_SECTIONS, ...Object.keys(state.selected||{})]));
-  names.forEach(name=>{
-    const pill = document.createElement('span');
-    pill.className='pill'; pill.textContent=name; pills.appendChild(pill);
-
-    const card = document.createElement('div'); card.className='section';
-    const h = document.createElement('h3'); h.textContent=name; card.appendChild(h);
-
-    const copy = document.createElement('div'); copy.className='copybox';
-    copy.textContent = composeSection(name);
-    card.appendChild(copy);
-
-    const ta = document.createElement('textarea'); ta.placeholder='Add/override notes…'; ta.rows=6;
-    ta.value = state.sections?.[name]?.free || '';
-    ta.oninput = ()=>{
-      state.sections[name]=state.sections[name]||{};
-      state.sections[name].free = ta.value;
-      save();
-      copy.textContent = composeSection(name);
-    };
-    card.appendChild(ta);
-
-    grid.appendChild(card);
-  });
-}
-
-function composeSection(name){
-  const parsed = parsedOptions;
-  const sel = state.selected?.[name] || {};
-  const lines = [];
-  if(parsed[name]) parsed[name].forEach((t,i)=>{ if(sel[i]) lines.push('• '+t); });
-  if(name==='System recommendation'){
-    if(state.sys.headline) lines.unshift('Recommendation: '+state.sys.headline);
-    if(state.sys.why) lines.push('Why: '+state.sys.why);
-    if(state.hotWaterSummary) lines.push('Hot-water model: '+state.hotWaterSummary);
-    if(state.w3w?.words) lines.push('What3Words: ///'+state.w3w.words);
-  }
-  if(state.sections?.[name]?.free) lines.push(state.sections[name].free);
-  return lines.join('\n');
-}
-
-/* =========================
-   LOAD & BOOTSTRAP
-   ========================= */
-async function loadOptions(){
-  $('optionsStatus').textContent='loading…';
-  try{
-    const url = $('optionsUrl').value.trim();
-    const r = await fetch(url, {cache:'no-store'});
-    const t = await r.text();
-    state.optionsUrl = url;
-    state.optionsText = t; save();
-    parsedOptions = parseOptions(t);
-    renderTiles();
-    $('optionsStatus').textContent='loaded';
-  }catch(e){
-    $('optionsStatus').textContent='error';
-    toast('Failed to load Options.txt');
-  }
-}
-$('btnLoadOptions').onclick = loadOptions;
-
-/* =========================
-   WHAT3WORDS
-   ========================= */
-const W3W_PROXY = 'https://w3w-proxy.martinbibb.workers.dev';
-$('btnResolveW3W').onclick = ()=> resolveW3W($('w3wInput').value);
-$('btnGPS').onclick = ()=> navigator.geolocation?.getCurrentPosition(
-  pos => resolveW3W(`${pos.coords.latitude},${pos.coords.longitude}`),
-  ()=> toast('GPS unavailable')
-);
-
-async function resolveW3W(val){
-  const s = (val||'').trim();
-  if(!s){ toast('Enter three words or lat,lng'); return; }
-  const coord = s.match(/^\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\s*$/);
-  try{
-    let result;
-    if(coord){
-      const url = `${W3W_PROXY}/convert-to-3wa?lat=${coord[1]}&lng=${coord[3]}`;
-      result = await fetch(url).then(r=>r.json());
-      if(!result?.words) result = { coordinates:{lat:+coord[1],lng:+coord[3]}, words:null };
-    }else{
-      const words = s.replace(/^\/+/, '').replace(/^w3w:/,'');
-      const url = `${W3W_PROXY}/convert-to-coords?words=${encodeURIComponent(words)}`;
-      result = await fetch(url).then(r=>r.json());
-      result.words = result.words || words;
-    }
-    state.w3w = result; save();
-    $('w3wBadge').textContent = result.words ? `///${result.words}` :
-      result.coordinates ? `${result.coordinates.lat},${result.coordinates.lng}` : 'Unresolved';
-    renderSections();
-  }catch{
-    $('w3wBadge').textContent = 'Unresolved';
-  }
-}
-
-/* =========================
-   HOT WATER SUMMARY BRIDGE
-   ========================= */
-window.addEventListener('message', (evt)=>{
-  try{
-    if(evt.data && evt.data.type === 'HOT_WATER_SUMMARY'){
-      state.hotWaterSummary = (evt.data.summary||'').toString();
-      save(); renderSections(); toast('Hot-water summary received');
-    }
-  }catch{}
+$('#prevBtn').onclick = ()=> go(state.page-1);
+$('#nextBtn').onclick = ()=> go(state.page+1);
+document.addEventListener('keydown',(e)=>{
+  if(e.target.closest('input,textarea,select')) return;
+  if(e.key==='ArrowRight') go(state.page+1);
+  if(e.key==='ArrowLeft') go(state.page-1);
 });
 
-/* =========================
-   BUILD / CLEAN / EXPORT
-   ========================= */
-function buildDraft(){
-  const names = Array.from(new Set([...DEFAULT_SECTIONS, ...Object.keys(state.selected||{})]));
-  const by = {};
-  names.forEach(n=> by[n] = composeSection(n).trim());
-  const txt = Object.entries(by).filter(([,v])=>v).map(([k,v])=>`# ${k}\n${v}`).join('\n\n');
-  state.lastBuilt = { by, txt, ts: Date.now() }; save();
-  return txt;
+/* --------- tile toggles --------- */
+function toggleTile(el){
+  const g = el.dataset.g, t = el.dataset.t, v = el.dataset.v || el.querySelector('.t')?.textContent;
+  state.picks[g] = state.picks[g] || {};
+  if(t==='single'){
+    state.picks[g] = {};
+    state.picks[g][v] = true;
+    $$(`.tile[data-g="${g}"]`).forEach(sib=>sib.classList.remove('active'));
+    el.classList.add('active');
+  }else{
+    state.picks[g][v] = !state.picks[g][v];
+    el.classList.toggle('active', !!state.picks[g][v]);
+  }
+  save();
 }
-async function cleanDraft(){
-  if(!$('chkReadable').checked){ toast('Readability disabled'); return; }
-  const ep = $('readableEndpoint').value.trim(); if(!ep){ toast('No readability endpoint'); return; }
-  const txt = state.lastBuilt?.txt || buildDraft();
-  try{
-    const r = await fetch(ep, {method:'POST', headers:{'content-type':'text/plain'}, body: txt});
-    const t = await r.text();
-    state.lastBuilt.txt = t; save();
-    toast('Cleaned');
-  }catch{ toast('Clean failed'); }
+$$('.tile').forEach(t=>{
+  if(t.id==='w3wTile') return;
+  t.addEventListener('click', ()=>toggleTile(t));
+});
+
+/* --------- inputs bind --------- */
+function bind(id, key){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.value = state.fields[key]||'';
+  el.oninput = e=>{ state.fields[key] = e.target.value; save(); };
 }
-function copyText(){
-  const txt = state.lastBuilt?.txt || buildDraft();
-  navigator.clipboard.writeText(txt).then(()=>toast('Copied'));
+bind('cust-notes','custNotes');
+bind('sys-headline','sysHeadline');
+bind('sys-why','sysWhy');
+bind('del-notes','delNotes');
+bind('obs','obs');
+
+bind('boiler-make','boilerMake');
+bind('boiler-kW','boilerKW');
+bind('boiler-year','boilerYear');
+
+bind('flue-extra','flueExtra');
+bind('cond-extra','condExtra');
+bind('gas-extra','gasExtra');
+
+bind('cyl-size','cylSize');
+bind('cyl-make','cylMake');
+bind('cyl-extra','cylExtra');
+
+bind('rad-count','radCount');
+bind('rad-extra','radExtra');
+
+bind('flush-extra','flushExtra');
+bind('ctrl-extra','ctrlExtra');
+
+/* --------- W3W (manual, no API) --------- */
+$('#w3wTile').onclick = ()=> $('#w3wBack').classList.add('show');
+$('#w3wClose').onclick = ()=> $('#w3wBack').classList.remove('show');
+$('#w3wGPS').onclick = ()=> navigator.geolocation?.getCurrentPosition(
+  pos => { $('#w3wInput').value = `${pos.coords.latitude},${pos.coords.longitude}`; $('#w3wStatus').textContent='GPS captured'; },
+  ()=> $('#w3wStatus').textContent='GPS unavailable'
+);
+
+function isThreeWords(s){
+  return /^[a-z]+\.([a-z]+)\.([a-z]+)$/i.test(s.trim().replace(/^\/+/,''));
 }
-function downloadJSON(){
-  if(!state.lastBuilt?.by){ buildDraft(); }
-  const by = state.lastBuilt?.by || {};
-  const out = {
-    meta:{ createdAt:new Date().toISOString(), w3w: state.w3w || null },
-    sections: by
-  };
-  const blob = new Blob([JSON.stringify(out,null,2)], {type:'application/json'});
+function isLatLng(s){
+  return /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(s.trim());
+}
+$('#w3wValidate').onclick = ()=>{
+  const s = ($('#w3wInput').value||'').trim();
+  if(isThreeWords(s)){ $('#w3wStatus').textContent = '✓ three words format'; return; }
+  if(isLatLng(s)){ $('#w3wStatus').textContent = '✓ lat,long format'; return; }
+  $('#w3wStatus').textContent = 'Format not recognised';
+};
+$('#w3wSave').onclick = ()=>{
+  const s = ($('#w3wInput').value||'').trim().replace(/^\/+/,'');
+  if(!s){ $('#w3wStatus').textContent='Nothing entered'; return; }
+  if(isThreeWords(s)){
+    state.w3w = { words: s.toLowerCase(), coords: null };
+  }else if(isLatLng(s)){
+    const [lat,lng] = s.split(',').map(x=>+x.trim());
+    state.w3w = { words: null, coords: {lat,lng} };
+  }else{
+    // store raw, as-is (still useful for delivery notes)
+    state.w3w = { words: s, coords: null };
+  }
+  save();
+  $('#w3wView').textContent = state.w3w?.words ? `///${state.w3w.words}` :
+    state.w3w?.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : '—';
+  $('#w3wBack').classList.remove('show');
+};
+
+/* --------- Summary build --------- */
+$('#btnBuild').onclick = ()=>{ const txt = buildSummary(); $('#summaryBox').textContent = txt || 'No summary yet.'; };
+$('#btnCopy').onclick = ()=> navigator.clipboard.writeText($('#summaryBox').textContent||'').then(()=>alert('Copied'));
+$('#btnJSON').onclick = ()=> {
+  const payload = buildJSON();
+  const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `depot-notes_${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
   a.click();
-}
-
-$('btnBuild').onclick = ()=> { buildDraft(); toast('Draft built'); maybeTelemetry(); };
-$('btnClean').onclick = cleanDraft;
-$('btnCopy').onclick = copyText;
-$('btnJSON').onclick = downloadJSON;
-
-/* telemetry */
-function maybeTelemetry(){
-  if(!$('chkTelemetry').checked) return;
-  const ep = $('telemetryEndpoint').value.trim(); if(!ep) return;
-  const schema = {
-    ts: Date.now(),
-    sections: Object.keys(state.selected||{}).length,
-    counts: Object.fromEntries(Object.entries(state.selected||{}).map(([k,v])=>[k, Object.values(v).filter(Boolean).length])),
-    hasW3W: !!state.w3w?.words
-  };
-  fetch(ep, {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(schema)}).catch(()=>{});
-}
-
-/* =========================
-   RESET
-   ========================= */
-$('btnReset').onclick = ()=>{
-  localStorage.removeItem('notes-elite-v2');
-  location.reload();
 };
 
-/* =========================
-   UX niceties
-   ========================= */
-document.addEventListener('keydown', (e)=>{
-  if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); $('btnBuild').click(); }
-});
+function sectionText(){
+  const p = state.picks, f = state.fields;
 
-/* =========================
-   INITIAL APPLY
-   ========================= */
-function applyInitial(){
-  $('optionsUrl').value = state.optionsUrl || $('optionsUrl').value;
-  $('sysHeadline').value = state.sys.headline || '';
-  $('sysWhy').value = state.sys.why || '';
-  $('readableEndpoint').value = state.readableEndpoint || $('readableEndpoint').value;
-  $('telemetryEndpoint').value = state.telemetryEndpoint || $('telemetryEndpoint').value;
-  $('chkReadable').checked = state.readableEnabled ?? true;
-  $('chkTelemetry').checked = state.telemetryEnabled ?? false;
+  const propType = oneOf(p.propertyType);
+  const beds = oneOf(p.bedrooms);
+  const ins = listOf(p.insulation);
 
-  $('sysHeadline').oninput = (e)=>{ state.sys.headline = e.target.value; save(); renderSections(); };
-  $('sysWhy').oninput = (e)=>{ state.sys.why = e.target.value; save(); renderSections(); };
-  $('readableEndpoint').oninput = (e)=>{ state.readableEndpoint = e.target.value; save(); };
-  $('telemetryEndpoint').oninput = (e)=>{ state.telemetryEndpoint = e.target.value; save(); };
-  $('chkReadable').onchange = (e)=>{ state.readableEnabled = e.target.checked; save(); };
-  $('chkTelemetry').onchange = (e)=>{ state.telemetryEnabled = e.target.checked; save(); };
+  const existing = oneOf(p.existing);
+  const proposed = oneOf(p.proposed);
+
+  const boilerLoc = oneOf(p.boilerLoc);
+  const boilerAccess = listOf(p.boilerAccess);
+  const boilerCond = listOf(p.boilerCond);
+
+  const flue = oneOf(p.flue);
+  const flueNotes = listOf(p.flueNotes);
+
+  const condensate = oneOf(p.condensate);
+  const condNotes = listOf(p.condNotes);
+
+  const gasMeterLoc = oneOf(p.gasMeterLoc);
+  const gasPipe = oneOf(p.gasPipe);
+  const gasNotes = listOf(p.gasNotes);
+
+  const cylType = oneOf(p.cylType);
+  const cylSpace = listOf(p.cylSpace);
+  const cylNotes = listOf(p.cylNotes);
+
+  const rads = listOf(p.rads);
+  const radCount = f.radCount;
+
+  const flush = oneOf(p.flush);
+  const filter = oneOf(p.filter);
+
+  const ctrls = listOf(p.controls);
+  const elec = listOf(p.electrical);
+
+  const parking = oneOf(p.parking);
+  const del = listOf(p.delivery);
+  const w3 = state.w3w?.words ? `///${state.w3w.words}` : (state.w3w?.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : null);
+
+  const S = {};
+  S["Customer details"] = f.custNotes || '';
+  S["Property"] = sentence([
+    propType && `Property type: ${propType}.`,
+    beds && `Bedrooms: ${beds}.`,
+    ins.length ? `Insulation indicators: ${ins.join(', ')}.` : ''
+  ]);
+  S["Existing system"] = existing ? `Existing system: ${existing}.` : '';
+  S["New system"] = proposed ? `Proposed system: ${proposed}.` : '';
+  S["Boiler"] = sentence([
+    boilerLoc && `Boiler location: ${boilerLoc}.`,
+    f.boilerMake && `Boiler: ${f.boilerMake}${f.boilerKW?` (${f.boilerKW} kW)`:''}${f.boilerYear?`, installed ~${f.boilerYear}`:''}.`,
+    boilerAccess.length ? `Access: ${boilerAccess.join(', ')}.` : '',
+    boilerCond.length ? `Condition: ${boilerCond.join(', ')}.` : ''
+  ]);
+  S["Flue & terminal"] = sentence([
+    flue && `Flue: ${flue}.`,
+    f.flueExtra,
+    flueNotes.length ? `Notes: ${flueNotes.join(', ')}.` : ''
+  ]);
+  S["Condensate & waste"] = sentence([
+    condensate && `Condensate: ${condensate}.`,
+    condNotes.length ? `Notes: ${condNotes.join(', ')}.` : '',
+    f.condExtra
+  ]);
+  S["Gas & meter"] = sentence([
+    gasMeterLoc && `Meter: ${gasMeterLoc}.`,
+    gasPipe && `Pipework approx: ${gasPipe}.`,
+    gasNotes.length ? `Notes: ${gasNotes.join(', ')}.` : '',
+    f.gasExtra
+  ]);
+  S["Cylinders & HW"] = sentence([
+    cylType && `Cylinder: ${cylType}${f.cylSize?` ${f.cylSize} L`:''}${f.cylMake?` (${f.cylMake})`:''}.`,
+    cylSpace.length ? `Space: ${cylSpace.join(', ')}.` : '',
+    cylNotes.length ? `Notes: ${cylNotes.join(', ')}.` : '',
+    f.cylExtra
+  ]);
+  S["Radiators"] = sentence([
+    radCount && `Approx radiators: ${radCount}.`,
+    rads.length ? `Status: ${rads.join(', ')}.` : '',
+    f.radExtra
+  ]);
+  S["Flush & Filter"] = sentence([
+    flush && `Flush: ${flush}.`,
+    filter && `Filter: ${filter}.`,
+    f.flushExtra
+  ]);
+  S["Electrical & controls"] = sentence([
+    ctrls.length ? `Controls: ${ctrls.join(', ')}.` : '',
+    elec.length ? `Electrical: ${elec.join(', ')}.` : '',
+    f.ctrlExtra
+  ]);
+  S["Access & WAH"] = sentence([
+    has(p.access,"Working at height") && `Working at height planned.`,
+    has(p.access,"Scaffold required") && `Scaffold required.`,
+    has(p.access,"Loft access OK") && `Loft access acceptable (hatch/lighting).`
+  ]);
+  S["H&S / Asbestos"] = sentence([
+    has(p.hs,"Asbestos suspected") && `Potential asbestos present — survey/clearance required.`,
+    has(p.hs,"Permit to work") && `Permit to work arrangements required.`
+  ]);
+  S["Delivery & Parking"] = sentence([
+    parking && `Parking: ${parking}.`,
+    del.length ? `Delivery constraints: ${del.join(', ')}.` : '',
+    w3 && `Location (What3Words): ${w3}.`,
+    f.delNotes && f.delNotes
+  ]);
+  S["Observations"] = f.obs || '';
+  S["System recommendation"] = sentence([
+    f.sysHeadline && `Recommendation: ${f.sysHeadline}.`,
+    f.sysWhy && `Why: ${f.sysWhy}.`
+  ]);
+
+  return S;
 }
+
+function buildSummary(){
+  const S = sectionText();
+  return Object.entries(S)
+    .filter(([,v])=>v && v.trim())
+    .map(([k,v])=>`# ${k}\n${v.trim()}`)
+    .join('\n\n');
+}
+function buildJSON(){
+  return { meta:{ createdAt:new Date().toISOString(), w3w: state.w3w || null }, sections: sectionText() };
+}
+
+/* --------- reset --------- */
+$('#resetBtn').onclick = ()=>{ localStorage.removeItem('notes-elite-full'); location.reload(); };
+
+/* --------- boot: reapply actives/values --------- */
+(function boot(){
+  go(state.page||0);
+  // tiles
+  $$('.tile').forEach(el=>{
+    if(el.id==='w3wTile') return;
+    const g=el.dataset.g, v=el.dataset.v||el.querySelector('.t')?.textContent;
+    if(g && state.picks?.[g]?.[v]) el.classList.add('active');
+  });
+  // w3w view
+  $('#w3wView').textContent = state.w3w?.words ? `///${state.w3w.words}` :
+    state.w3w?.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : '—';
+})();
 </script>
 </body>
 </html>
