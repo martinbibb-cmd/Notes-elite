@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>Notes Elite — Options.txt Powered (Robust Loader)</title>
+<title>Notes Elite — Options.txt (pipe format)</title>
 <meta name="theme-color" content="#0b1016"/>
 
 <link rel="preload" as="image" href="https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg">
@@ -20,8 +20,7 @@ html,body{height:100%}
 html{color-scheme:dark}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 ui-sans-serif,-apple-system,Segoe UI,Roboto,Arial;overflow:hidden}
 
-.app{
-  height:100dvh; display:grid; grid-template-rows:64px 1fr 56px;
+.app{height:100dvh;display:grid;grid-template-rows:64px 1fr 56px;
   background:
     url("https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg") right -40px top -40px/220px no-repeat,
     url("https://martinbibb-cmd.github.io/Fast-survey/assets/branch.svg") left -40px bottom -40px/220px no-repeat,
@@ -32,57 +31,42 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 ui-sans-serif
 .dot{width:10px;height:10px;border-radius:50%;background:var(--brand);box-shadow:0 0 10px var(--brand)}
 .hint{margin-left:auto;font-size:12px;opacity:.85}
 
-.sourceBar{display:flex;gap:8px;align-items:center; padding:6px 10px; background:#0e1722; border-bottom:1px solid var(--line)}
-.sourceBar input{flex:1; min-width:200px; background:#0a121c; color:var(--ink); border:1px solid #1a2b3d; border-radius:10px; padding:8px 10px}
+.sourceBar{display:flex;gap:8px;align-items:center;padding:6px 10px;background:#0e1722;border-bottom:1px solid var(--line)}
+.sourceBar input{flex:1;min-width:200px;background:#0a121c;color:var(--ink);border:1px solid #1a2b3d;border-radius:10px;padding:8px 10px}
 .sourceBar .status{font-size:12px;opacity:.9}
 .sourceBar .status.bad{color:var(--err)}
 .sourceBar .status.ok{color:var(--ok)}
 .btnSm{appearance:none;border:1px solid #21405a;background:#112233;color:var(--ink);padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600}
 
-.content{
-  display:grid; grid-template-columns: 260px 1fr; gap:10px;
-  padding:10px; overflow:hidden;
-}
-@media (max-width: 900px){ .content{ grid-template-columns: 1fr; } }
+.content{display:grid;grid-template-columns:260px 1fr;gap:10px;padding:10px;overflow:hidden}
+@media (max-width:900px){.content{grid-template-columns:1fr}}
 
-.sidebar{
-  background:#0f1720;border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:100%;
-}
+.sidebar{background:#0f1720;border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:100%}
 .sidebar h3{margin:10px 12px;font-size:13px;opacity:.9}
 .nav{list-style:none;margin:0;padding:6px}
-.nav button{
-  width:100%; text-align:left; display:block; border:0; background:transparent; color:var(--ink);
-  padding:10px 12px; border-radius:10px; cursor:pointer;
-}
-.nav button.active{background:#0e1a28; border:1px solid #1d3a54}
+.nav button{width:100%;text-align:left;display:block;border:0;background:transparent;color:var(--ink);padding:10px 12px;border-radius:10px;cursor:pointer}
+.nav button.active{background:#0e1a28;border:1px solid #1d3a54}
 .nav button:hover{background:#0d1620}
 
-.main{
-  background:#0f1720;border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:100%;
-  display:flex; flex-direction:column;
-}
+.main{background:#0f1720;border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:100%;display:flex;flex-direction:column}
 .sectionHead{position:sticky;top:0;background:#0f1720;border-bottom:1px solid var(--line);padding:10px 12px;z-index:1}
-.sectionBody{padding:10px 12px; display:grid; gap:10px}
+.sectionBody{padding:10px 12px;display:grid;gap:10px}
 
-.tiles{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px}
-.tile{
-  background:linear-gradient(180deg,var(--tile),var(--tile2));
-  border:1px solid var(--tileEdge); border-radius:14px; padding:12px; cursor:pointer;
-  min-height:72px; display:flex; flex-direction:column; gap:6px; transition:transform .06s ease,border-color .1s ease,background .1s ease;
-}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.group{grid-column:1/-1;font-size:12px;opacity:.85;border-left:3px solid #23445f;padding-left:8px;margin-top:6px}
+
+.tile{background:linear-gradient(180deg,var(--tile),var(--tile2));border:1px solid var(--tileEdge);border-radius:14px;padding:10px;cursor:pointer;min-height:88px;display:flex;flex-direction:column;gap:6px;transition:transform .06s ease,border-color .1s ease,background .1s ease}
 .tile:hover{transform:translateY(-1px)}
-.tile.active{border-color:var(--ok); background:var(--tileActive)}
-.tile .img{height:28px;background:url("https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg") right/contain no-repeat;opacity:.9}
-.tile .t{font-weight:700}
+.tile.active{border-color:var(--ok);background:var(--tileActive)}
+.tile .img{height:24px;background:url("https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg") right/contain no-repeat;opacity:.9}
+.t{font-weight:700}
+.badges{display:flex;gap:6px;flex-wrap:wrap;font-size:11px;opacity:.9}
+.badge{border:1px solid #23445f;border-radius:8px;padding:2px 6px}
 .small{font-size:12px;opacity:.85}
 
-.input, textarea{
-  width:100%; background:#0a121c; color:var(--ink); border:1px solid #1a2b3d; border-radius:10px; padding:10px 12px; outline:none
-}
+.input,textarea{width:100%;background:#0a121c;color:var(--ink);border:1px solid #1a2b3d;border-radius:10px;padding:10px 12px;outline:none}
 textarea{resize:vertical;min-height:84px}
-
 .row{display:flex;gap:8px;flex-wrap:wrap}
-.badge{font-size:12px;opacity:.85}
 
 .footer{display:flex;gap:8px;align-items:center;justify-content:center;padding:8px;background:#0c151f;border-top:1px solid var(--line)}
 .btn{appearance:none;border:1px solid #21405a;background:#112233;color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
@@ -102,13 +86,12 @@ textarea{resize:vertical;min-height:84px}
 <div class="app">
   <div class="header">
     <div class="brand"><span class="dot"></span><span>Notes&nbsp;Elite</span></div>
-    <div class="hint">Tiles load from <code>Options.txt</code> • Build JSON below.</div>
+    <div class="hint">Pipe-format Options.txt → tiles → JSON</div>
   </div>
 
-  <!-- Source / status bar -->
   <div class="sourceBar">
     <span class="small">Options URL:</span>
-    <input id="optionsUrl" />
+    <input id="optionsUrl"/>
     <button class="btnSm" id="reloadBtn">Reload</button>
     <span id="sourceStatus" class="status">loading…</span>
   </div>
@@ -118,7 +101,6 @@ textarea{resize:vertical;min-height:84px}
       <h3>Sections</h3>
       <ul class="nav" id="nav"></ul>
     </aside>
-
     <main class="main" id="main"></main>
   </div>
 
@@ -144,335 +126,311 @@ textarea{resize:vertical;min-height:84px}
       <button class="btn primary" id="w3wSave">Save</button>
       <button class="btn" id="w3wClose">Close</button>
     </div>
-    <span class="small">We store what you enter — no network calls.</span>
+    <span class="small">Stored locally — no API calls.</span>
   </div>
 </div>
 
 <script>
-/* =========================
-   Robust Options loader
-   ========================= */
-/* Preferred sources (try in order) — update your user/repo if needed */
-const RAW_URL   = "https://raw.githubusercontent.com/martinbibb-cmd/Depot-notes/main/Options.txt";
-const JSD_URL   = "https://cdn.jsdelivr.net/gh/martinbibb-cmd/Depot-notes@main/Options.txt";
-const GH_HTML   = "https://github.com/martinbibb-cmd/Depot-notes/blob/main/Options.txt"; // HTML fallback
+/* ------- URLs (tries in order) ------- */
+const RAW = "https://raw.githubusercontent.com/martinbibb-cmd/Depot-notes/main/Options.txt";
+const JSD = "https://cdn.jsdelivr.net/gh/martinbibb-cmd/Depot-notes@main/Options.txt";
+const GH  = "https://github.com/martinbibb-cmd/Depot-notes/blob/main/Options.txt";
 
-/* Canonical UI order (per your list) */
-const UI_SECTIONS = [
+/* Canonical UI order (your list) */
+const UI = [
   "Needs","Working at heights","System characteristics","Arse_cover_notes",
   "Components that require assistance","Restrictions to work","External hazards",
   "Delivery notes","Office notes","New boiler and controls","Flue","Pipe work",
   "Disruption","Gas","Condensate","Boiler","Flush","Filter","Controls",
   "Cylinder","Radiators","Customer actions","Summary"
 ];
+const SINGLE = new Set(["Flue","Gas","Condensate","Boiler","Flush","Filter","Cylinder"]);
+const W3W_SECTION = "Delivery notes";
 
-const SINGLE_SELECT = new Set(["Flue","Gas","Condensate","Boiler","Flush","Filter","Cylinder"]);
-const W3W_IN_SECTION = "Delivery notes";
-
-/* = State = */
-const $ = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
-const state = Object.assign({ selections:{}, notes:{}, custom:{}, w3w:null, parsed:{}, sectionMap:{} }, load());
-function save(){ localStorage.setItem('notes-elite-optxt-robust', JSON.stringify(state)); }
-function load(){ try{ return JSON.parse(localStorage.getItem('notes-elite-optxt-robust')||'{}'); }catch{ return {}; } }
-function listOf(group){ return group ? Object.keys(group).filter(k=>group[k]) : []; }
+/* -------- state & helpers -------- */
+const $ = s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const state = Object.assign({selections:{},notes:{},custom:{},w3w:null,parsed:{},map:{}}, load());
+function save(){ localStorage.setItem('notes-elite-pipe', JSON.stringify(state)); }
+function load(){ try{ return JSON.parse(localStorage.getItem('notes-elite-pipe')||'{}'); }catch{ return {}; } }
 function norm(s){ return (s||"").toLowerCase().replace(/\s+/g,' ').replace(/[_-]/g,' ').trim(); }
-function isThreeWords(s){ return /^[a-z]+\.([a-z]+)\.([a-z]+)$/i.test(s.trim().replace(/^\/+/,'')); }
-function isLatLng(s){ return /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(s.trim()); }
+function listOf(m){ return m?Object.keys(m).filter(k=>m[k]):[]; }
+function is3w(s){ return /^[a-z]+\.([a-z]+)\.([a-z]+)$/i.test((s||'').trim().replace(/^\/+/,'')); }
+function isLL(s){ return /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test((s||'').trim()); }
 
-/* ===== fetching with fallbacks (handles CORS) ===== */
+/* -------- robust fetch -------- */
 async function fetchText(url){
-  const r = await fetch(url, {cache:'no-store'});
-  if(!r.ok) throw new Error(`HTTP ${r.status}`);
-  // If html, try to extract <pre> content (GitHub blob view)
-  const ct = r.headers.get('content-type')||'';
-  const text = await r.text();
-  if (!/text\/plain|text\/.*|application\/octet-stream/i.test(ct) && /<html/i.test(text)){
-    const pre = text.match(/<table[^>]*class="highlight[^"]*"[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/i) || text.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+  const r = await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  const ct = r.headers.get('content-type')||''; const t = await r.text();
+  if(!/text\//i.test(ct) && /<html/i.test(t)){
+    const pre = t.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i) || t.match(/<tbody[^>]*>([\s\S]*?)<\/tbody>/i);
     if(pre){ return pre[1].replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&'); }
   }
-  return text;
+  return t;
 }
 async function loadOptions(urls){
-  const status = $('#sourceStatus');
-  for (const u of urls){
+  const s = $('#sourceStatus');
+  for(const u of urls){
     try{
-      status.textContent = `loading from ${new URL(u).hostname}…`;
-      const t = await fetchText(u);
-      // sanity check: must contain [Section] style
-      if(!/\[[^\]]+\]/.test(t)) throw new Error('No [Section] headers detected');
-      status.textContent = `loaded from ${new URL(u).hostname}`;
-      status.className = "status ok";
-      return {text:t, source:u};
-    }catch(e){
-      status.textContent = `failed on ${new URL(u).hostname}: ${e.message}`;
-      status.className = "status bad";
-    }
+      s.textContent = `loading ${new URL(u).hostname}…`;
+      const txt = await fetchText(u);
+      if(!/\[[^\]]+\]/.test(txt)) throw new Error('no [Section] headers');
+      s.textContent = `OK from ${new URL(u).hostname}`; s.className = 'status ok';
+      return {txt,src:u};
+    }catch(e){ s.textContent = `failed on ${new URL(u).hostname}: ${e.message}`; s.className='status bad'; }
   }
-  throw new Error("All sources failed");
+  throw new Error('all sources failed');
 }
 
-/* ===== parse [Section] blocks into { sec:[lines] } ===== */
-function parseOptions(txt){
+/* -------- parse pipe format --------
+   Supports:
+   [Section]
+   CODE | Category | Text (| Extra…)
+   |subgroup    -> sets current subgroup label
+*/
+function parsePipe(txt){
+  const out={}; let cur=null, subgroup=null;
   const lines = txt.replace(/\r\n/g,'\n').split('\n');
-  const out = {}; let cur = null;
-  for(const raw of lines){
-    const m = raw.match(/^\s*\[(.+?)\]\s*$/);
-    if(m){ cur = m[1]; out[cur] = out[cur] || []; continue; }
+  for(let raw of lines){
+    const ln = raw.replace(/\s+$/,'');
+    const m = ln.match(/^\s*\[(.+?)\]\s*$/);
+    if(m){ cur=m[1]; out[cur]=out[cur]||[]; subgroup=null; continue; }
     if(!cur) continue;
-    const line = raw.replace(/\s+$/,'');
-    if(!line) continue;
-    if(line.trim().startsWith('- ')) out[cur].push(line.trim().slice(2));
-    else out[cur].push(line.trim());
+    if(!ln.trim()) continue;
+
+    if(/^\s*\|[^|]/.test(ln)){ // subgroup header like "|gas run"
+      subgroup = ln.replace(/^\s*\|/, '').trim();
+      // also allow multiple subgroup markers in a row
+      continue;
+    }
+
+    // data row – split by |
+    const parts = ln.split('|').map(x=>x.trim()).filter(x=>x!=='' || x==='0');
+    if(parts.length>=2){
+      const code = parts[0];
+      let category='', text='';
+      if(parts.length===2){ text = parts[1]; }
+      else { category = parts[1]; text = parts.slice(2).join(' | '); }
+      out[cur].push({code, category, text, subgroup});
+    }else{
+      // fallback: bare line -> text
+      out[cur].push({code:'', category:'', text:ln.trim(), subgroup});
+    }
   }
   return out;
 }
 
-/* ===== map parsed -> UI names (fuzzy) ===== */
-function buildSectionMap(parsed){
-  const byNorm = {};
-  Object.entries(parsed).forEach(([k,v])=> byNorm[norm(k)] = v);
-
-  const map = {};
-  UI_SECTIONS.forEach(ui=>{
-    if(ui==="Summary"){ map[ui]=[]; return; }
-    let tiles = byNorm[norm(ui)];
-
-    if(!tiles){
-      const aliases = {
-        "working at heights": ["working at height","wah","access & wah","access and wah","working at heights (wah)"],
-        "arse_cover_notes": ["arse cover notes","arse-cover-notes","cover notes","cover_notes"],
-        "system characteristics": ["system chars","system characteristics (a pack)","system"],
-        "components that require assistance": ["components require assistance","assistance components"],
-        "restrictions to work": ["restrictions","work restrictions"],
-        "external hazards": ["hazards","external hazards & risks","hazards external"],
-        "delivery notes": ["delivery","parking","delivery & parking","delivery and parking"],
-        "office notes": ["office","admin notes","office/admin notes"],
-        "new boiler and controls": ["new boiler","new boiler & controls","boiler and controls","new boiler controls"],
-        "pipe work": ["pipework","pipe-work","pipe work notes","pipes"],
-        "customer actions": ["customer to","customer actions required","customer jobs","actions for customer"]
-      }[norm(ui)];
-      if(aliases){ for(const a of aliases){ if(byNorm[a]){ tiles = byNorm[a]; break; } }
-    }
-    map[ui] = Array.isArray(tiles) ? tiles.filter(Boolean) : [];
+/* -------- map parsed -> UI names (fuzzy) -------- */
+function buildMap(parsed){
+  const byNorm={}; Object.entries(parsed).forEach(([k,v])=>byNorm[norm(k)]=v);
+  const alias = {
+    "working at heights":["working at height","wah","access & wah","access and wah","working at heights (wah)"],
+    "arse_cover_notes":["arse cover notes","arse-cover-notes","cover notes","cover_notes"],
+    "system characteristics":["system chars","system characteristics (a pack)","system"],
+    "components that require assistance":["components require assistance","assistance components"],
+    "restrictions to work":["restrictions","work restrictions"],
+    "external hazards":["hazards","external hazards & risks","hazards external"],
+    "delivery notes":["delivery","parking","delivery & parking","delivery and parking"],
+    "office notes":["office","admin notes","office/admin notes"],
+    "new boiler and controls":["new boiler","new boiler & controls","boiler and controls","new boiler controls"],
+    "pipe work":["pipework","pipe-work","pipe work notes","pipes"],
+    "customer actions":["customer to","customer actions required","customer jobs","actions for customer"]
+  };
+  const map={};
+  UI.forEach(u=>{
+    if(u==="Summary"){ map[u]=[]; return; }
+    let arr = byNorm[norm(u)];
+    if(!arr && alias[norm(u)]){ for(const a of alias[norm(u)]){ if(byNorm[a]){ arr=byNorm[a]; break; } } }
+    map[u] = Array.isArray(arr)?arr:[];
   });
   return map;
 }
 
-/* ===== UI build ===== */
-const nav = $('#nav');
-const main = $('#main');
-
+/* -------- UI build -------- */
+const nav = $('#nav'), main=$('#main');
 function buildUI(){
-  nav.innerHTML = ''; main.innerHTML = '';
-
-  UI_SECTIONS.forEach((sec, i)=>{
-    const li = document.createElement('li');
-    li.innerHTML = `<button data-target="${sec}" ${i===0?'class="active"':''}>${sec}</button>`;
+  nav.innerHTML=''; main.innerHTML='';
+  UI.forEach((sec,i)=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<button data-target="${sec}" ${i===0?'class="active"':''}>${sec}</button>`;
     nav.appendChild(li);
 
-    const panel = document.createElement('section');
-    panel.className = 'panel'; panel.dataset.section = sec; panel.style.display = (i===0?'block':'none');
+    const panel=document.createElement('section');
+    panel.className='panel'; panel.dataset.section=sec; panel.style.display=(i===0?'block':'none');
 
-    const tiles = (sec==="Summary") ? [] : (state.sectionMap?.[sec] || []);
-    const isSingle = SINGLE_SELECT.has(sec);
-    const w3wCtl = (sec===W3W_IN_SECTION);
-
-    panel.innerHTML = `
-      <div class="sectionHead">
-        <strong>${sec}</strong>
-        ${tiles.length?`<span class="small"> • ${tiles.length} options</span>`:`<span class="small" style="color:var(--warn)"> • no options found</span>`}
-      </div>
-      <div class="sectionBody">
-        ${tiles.length?`<div class="tiles" data-tiles></div>`:`<div class="small">Add items under [${sec}] in Options.txt to see tiles here (still usable with notes).</div>`}
-        ${w3wCtl?`
-          <div class="row"><button class="btn" id="openW3W">What3Words…</button>
-          <span class="badge">Saved: <strong id="w3wView">—</strong></span></div>`:''}
-        ${sec!=="Summary"?`
-          <textarea class="input" placeholder="Free-text notes for '${sec}'…" data-notes></textarea>
-          <div class="row">
-            <input class="input" placeholder="Add custom line…" data-custom-input />
-            <button class="btn" data-custom-add>Add</button>
-          </div>
-          <div class="small" data-custom-list></div>
-        `:`
+    if(sec==="Summary"){
+      panel.innerHTML=`
+        <div class="sectionHead"><strong>${sec}</strong></div>
+        <div class="sectionBody">
           <div class="row">
             <button class="btn" id="buildNow">Build JSON</button>
             <button class="btn primary" id="copyNow">Copy JSON</button>
             <button class="btn good" id="downloadNow">Download JSON</button>
           </div>
-          <div id="jsonPreview" class="copybox" aria-live="polite">No JSON yet.</div>
-        `}
+          <div id="jsonPreview" class="copybox">No JSON yet.</div>
+        </div>`;
+      main.appendChild(panel);
+      panel.querySelector('#buildNow').onclick=()=>{$('#jsonPreview').textContent=JSON.stringify(buildJSON(),null,2);};
+      panel.querySelector('#copyNow').onclick=()=>navigator.clipboard.writeText(JSON.stringify(buildJSON(),null,2));
+      panel.querySelector('#downloadNow').onclick=downloadJSON;
+      return;
+    }
+
+    const items = state.map?.[sec] || [];
+    const isSingle = SINGLE.has(sec);
+    const w3wCtl = (sec===W3W_SECTION);
+
+    panel.innerHTML=`
+      <div class="sectionHead"><strong>${sec}</strong> <span class="small">• ${items.length} options</span></div>
+      <div class="sectionBody">
+        <div class="tiles" data-tiles></div>
+        ${w3wCtl?`<div class="row"><button class="btn" id="openW3W">What3Words…</button>
+          <span class="badge">Saved: <strong id="w3wView">—</strong></span></div>`:''}
+        <textarea class="input" data-notes placeholder="Free-text notes for '${sec}'…"></textarea>
+        <div class="row"><input class="input" data-custom-input placeholder="Add custom line…"/><button class="btn" data-custom-add>Add</button></div>
+        <div class="small" data-custom-list></div>
       </div>`;
     main.appendChild(panel);
 
-    if(tiles.length){
-      const wrap = panel.querySelector('[data-tiles]');
-      tiles.forEach(label=>{
-        const div = document.createElement('div');
-        div.className='tile';
-        div.innerHTML = `<div class="img"></div><div class="t">${label}</div>`;
-        div.dataset.value = label; div.dataset.mode = isSingle?'single':'multi';
-        wrap.appendChild(div);
-      });
-    }
-  });
-
-  wirePanels();
-}
-
-function wirePanels(){
-  const panels = $$('.panel');
-  $('#nav').addEventListener('click', (e)=>{
-    const b = e.target.closest('button[data-target]'); if(!b) return;
-    panels.forEach(p=>p.style.display = (p.dataset.section===b.dataset.target)?'block':'none');
-    $$('#nav button').forEach(bb=>bb.classList.toggle('active', bb===b));
-    $('#main').scrollTop = 0;
-  });
-
-  panels.forEach(panel=>{
-    const section = panel.dataset.section;
-
-    panel.querySelectorAll('.tile').forEach(tile=>{
-      if (state.selections?.[section]?.[tile.dataset.value]) tile.classList.add('active');
-      tile.addEventListener('click', ()=>{
-        const mode = tile.dataset.mode, val = tile.dataset.value;
-        state.selections[section] = state.selections[section] || {};
-        if(mode==='single'){
-          [...tile.parentElement.children].forEach(sib=>{
-            sib.classList.remove('active');
-            if (sib!==tile && state.selections[section]) delete state.selections[section][sib.dataset.value];
-          });
-          state.selections[section][val] = true;
-          tile.classList.add('active');
+    // tiles + subgroup headings
+    const wrap=panel.querySelector('[data-tiles]');
+    let lastGroup=null;
+    items.forEach(rec=>{
+      if(rec.subgroup && rec.subgroup!==lastGroup){
+        const g=document.createElement('div'); g.className='group'; g.textContent=rec.subgroup; wrap.appendChild(g); lastGroup=rec.subgroup;
+      }
+      const t=document.createElement('div'); t.className='tile';
+      t.innerHTML=`<div class="img"></div>
+                   <div class="t">${rec.text||rec.category||rec.code}</div>
+                   <div class="badges">
+                     ${rec.code?`<span class="badge">${rec.code}</span>`:''}
+                     ${rec.category?`<span class="badge">${rec.category}</span>`:''}
+                     ${rec.subgroup?`<span class="badge">${rec.subgroup}</span>`:''}
+                   </div>`;
+      t.dataset.mode=isSingle?'single':'multi';
+      t.dataset.code=rec.code||'';
+      t.dataset.cat=rec.category||'';
+      t.dataset.text=rec.text||'';
+      // restore
+      const key=`${rec.code}|${rec.text}`;
+      if(state.selections?.[sec]?.[key]) t.classList.add('active');
+      t.onclick=()=>{
+        state.selections[sec]=state.selections[sec]||{};
+        if(isSingle){
+          [...wrap.querySelectorAll('.tile')].forEach(sib=>{sib.classList.remove('active');});
+          state.selections[sec]={}; // clear
+          state.selections[sec][key]=true;
+          t.classList.add('active');
         }else{
-          state.selections[section][val] = !state.selections[section][val];
-          tile.classList.toggle('active', !!state.selections[section][val]);
+          const now=!state.selections[sec][key];
+          state.selections[sec][key]=now;
+          t.classList.toggle('active',now);
         }
         save();
-      });
+      };
+      wrap.appendChild(t);
     });
 
-    const ta = panel.querySelector('[data-notes]');
-    if (ta){
-      ta.value = state.notes?.[section] || '';
-      ta.addEventListener('input', e=>{ state.notes[section] = e.target.value; save(); });
-    }
+    // notes
+    const ta=panel.querySelector('[data-notes]');
+    ta.value=state.notes?.[sec]||'';
+    ta.oninput=e=>{state.notes[sec]=e.target.value;save();};
 
-    const addBtn = panel.querySelector('[data-custom-add]');
-    if (addBtn){
-      const input = panel.querySelector('[data-custom-input]');
-      const list = panel.querySelector('[data-custom-list]');
-      function render(){ const arr = state.custom?.[section]||[]; list.innerHTML = arr.map((t,i)=>`<span class="badge">• ${t} <a href="#" data-del="${i}">×</a></span>`).join(' '); }
-      render();
-      addBtn.addEventListener('click', ()=>{
-        const v=(input.value||'').trim(); if(!v) return;
-        state.custom[section]=state.custom[section]||[]; state.custom[section].push(v); input.value=''; save(); render();
-      });
-      list.addEventListener('click', e=>{
-        const idx=e.target.getAttribute('data-del'); if(idx===null) return; state.custom[section].splice(+idx,1); save(); render(); e.preventDefault();
-      });
-    }
+    // custom lines
+    const addBtn=panel.querySelector('[data-custom-add]');
+    const input=panel.querySelector('[data-custom-input]');
+    const list=panel.querySelector('[data-custom-list]');
+    function render(){ const arr=state.custom?.[sec]||[]; list.innerHTML=arr.map((x,i)=>`<span class="badge">• ${x} <a href="#" data-del="${i}">×</a></span>`).join(' '); }
+    render();
+    addBtn.onclick=()=>{ const v=(input.value||'').trim(); if(!v) return; state.custom[sec]=state.custom[sec]||[]; state.custom[sec].push(v); input.value=''; save(); render(); };
+    list.onclick=(e)=>{ const i=e.target.getAttribute('data-del'); if(i==null) return; state.custom[sec].splice(+i,1); save(); render(); e.preventDefault(); };
 
-    if (section===W3W_IN_SECTION){
-      const btn = panel.querySelector('#openW3W');
-      const view = panel.querySelector('#w3wView');
-      btn?.addEventListener('click', ()=> $('#w3wModal').classList.add('show'));
-      if(view) view.textContent = state.w3w?.words ? `///${state.w3w.words}` :
-                       (state.w3w?.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : (state.w3w?.raw||'—'));
-    }
-
-    if (section==='Summary'){
-      panel.querySelector('#buildNow').addEventListener('click', ()=> $('#jsonPreview').textContent = JSON.stringify(buildJSON(),null,2));
-      panel.querySelector('#copyNow').addEventListener('click', ()=> navigator.clipboard.writeText(JSON.stringify(buildJSON(),null,2)));
-      panel.querySelector('#downloadNow').addEventListener('click', downloadJSON);
+    // w3w
+    if(w3wCtl){
+      panel.querySelector('#openW3W').onclick=()=>$('#w3wModal').classList.add('show');
+      const v=panel.querySelector('#w3wView');
+      v.textContent = state.w3w?.words?`///${state.w3w.words}`: (state.w3w?.coords?`${state.w3w.coords.lat},${state.w3w.coords.lng}`: (state.w3w?.raw||'—'));
     }
   });
+
+  // nav wiring
+  $('#nav').onclick=(e)=>{
+    const b=e.target.closest('button[data-target]'); if(!b) return;
+    $$('#nav button').forEach(bb=>bb.classList.toggle('active', bb===b));
+    $$('.panel').forEach(p=>p.style.display=(p.dataset.section===b.dataset.target)?'block':'none');
+    $('#main').scrollTop=0;
+  };
 }
 
-/* ===== What3Words modal (manual only) ===== */
-$('#w3wClose').onclick = ()=> $('#w3wModal').classList.remove('show');
-$('#w3wGPS').onclick = ()=> navigator.geolocation?.getCurrentPosition(
-  pos => { $('#w3wInput').value = `${pos.coords.latitude},${pos.coords.longitude}`; $('#w3wStatus').textContent='GPS captured'; },
-  ()=> $('#w3wStatus').textContent='GPS unavailable'
+/* ------- W3W modal ------- */
+$('#w3wClose').onclick=()=>$('#w3wModal').classList.remove('show');
+$('#w3wGPS').onclick=()=>navigator.geolocation?.getCurrentPosition(
+  pos=>{$('#w3wInput').value=`${pos.coords.latitude},${pos.coords.longitude}`; $('#w3wStatus').textContent='GPS captured';},
+  ()=>$('#w3wStatus').textContent='GPS unavailable'
 );
-$('#w3wValidate').onclick = ()=>{
-  const s = ($('#w3wInput').value||'').trim();
-  if (isThreeWords(s)) return $('#w3wStatus').textContent = '✓ three words format';
-  if (isLatLng(s))    return $('#w3wStatus').textContent = '✓ lat,long format';
-  $('#w3wStatus').textContent = 'Not recognised (will store raw)';
+$('#w3wValidate').onclick=()=>{
+  const s=$('#w3wInput').value||'';
+  if(is3w(s)) return $('#w3wStatus').textContent='✓ three words';
+  if(isLL(s)) return $('#w3wStatus').textContent='✓ lat,long';
+  $('#w3wStatus').textContent='Unrecognised (will store raw)';
 };
-$('#w3wSave').onclick = ()=>{
-  const s = ($('#w3wInput').value||'').trim().replace(/^\/+,'');
-  if (!s){ $('#w3wStatus').textContent='Nothing entered'; return; }
-  if (isThreeWords(s)) state.w3w = {words:s.toLowerCase()};
-  else if (isLatLng(s)){ const [lat,lng]=s.split(',').map(x=>+x.trim()); state.w3w = {coords:{lat,lng}}; }
-  else state.w3w = {raw:s};
+$('#w3wSave').onclick=()=>{
+  const s=($('#w3wInput').value||'').trim().replace(/^\/+,''); if(!s){$('#w3wStatus').textContent='Nothing entered'; return;}
+  if(is3w(s)) state.w3w={words:s.toLowerCase()}; else if(isLL(s)){const [lat,lng]=s.split(',').map(x=>+x.trim()); state.w3w={coords:{lat,lng}};} else state.w3w={raw:s};
   save(); $('#w3wModal').classList.remove('show');
-  const dv = document.querySelector('[data-section="Delivery notes"] #w3wView');
-  if (dv) dv.textContent = state.w3w.words ? `///${state.w3w.words}` :
-            (state.w3w.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : (state.w3w.raw||'—'));
+  const dv=document.querySelector(`[data-section="${W3W_SECTION}"] #w3wView`); if(dv) dv.textContent=state.w3w.words?`///${state.w3w.words}`:(state.w3w.coords?`${state.w3w.coords.lat},${state.w3w.coords.lng}`:(state.w3w.raw||'—'));
 };
 
-/* ===== JSON build & footer ===== */
+/* ------- JSON build & footer ------- */
 function buildJSON(){
-  const out = { meta:{
-      generatedAt: new Date().toISOString(),
-      what3words: state.w3w || null,
-      optionsSource: $('#optionsUrl').value
-    }, sections:{} };
-
-  for (const name of UI_SECTIONS){
-    if (name==='Summary') continue;
-    const picks = listOf(state.selections[name]);
-    const notes = state.notes?.[name] || '';
-    const custom = state.custom?.[name] || [];
-    const parts = [];
-    if (picks.length) parts.push(picks.join('; '));
-    if (custom.length) parts.push(custom.map(x=>`• ${x}`).join(' '));
-    if (notes) parts.push(notes);
-    out.sections[name] = parts.join(' ').trim();
-  }
+  const out={meta:{generatedAt:new Date().toISOString(),what3words:state.w3w||null,optionsSource:$('#optionsUrl').value}, sections:{}};
+  UI.forEach(sec=>{
+    if(sec==='Summary') return;
+    const picks = listOf(state.selections[sec]).map(key=>{
+      // key is "CODE|TEXT"
+      const [code,text]=key.split('|'); return {code:code||'', text:text||''};
+    });
+    const human = [
+      picks.length? ('• '+picks.map(p=> (p.code?`${p.code} – `:'') + p.text).join('; ')) : '',
+      (state.custom?.[sec]||[]).map(x=>'• '+x).join(' '),
+      state.notes?.[sec]||''
+    ].filter(Boolean).join(' ');
+    out.sections[sec] = { text: human.trim(), picks, custom: state.custom?.[sec]||[], notes: state.notes?.[sec]||'' };
+  });
   return out;
 }
 function downloadJSON(){
   const data = buildJSON();
   const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `depot-notes_${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
-  a.click();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`depot-notes_${new Date().toISOString().replace(/[:.]/g,'-')}.json`; a.click();
 }
-$('#btnBuild').onclick = ()=>{ const d=buildJSON(); const p=document.querySelector('[data-section="Summary"] #jsonPreview'); if(p){ p.textContent=JSON.stringify(d,null,2);} const btn=[...$$('#nav button')].find(b=>b.dataset.target==='Summary'); btn?.click(); };
-$('#btnCopy').onclick = ()=> navigator.clipboard.writeText(JSON.stringify(buildJSON(),null,2));
-$('#btnDownload').onclick = downloadJSON;
-$('#btnReset').onclick = ()=>{ localStorage.removeItem('notes-elite-optxt-robust'); location.reload(); };
+$('#btnBuild').onclick=()=>{const d=buildJSON(); const p=document.querySelector('[data-section="Summary"] #jsonPreview'); if(p) p.textContent=JSON.stringify(d,null,2); const b=[...$$('#nav button')].find(x=>x.dataset.target==='Summary'); b?.click();};
+$('#btnCopy').onclick=()=>navigator.clipboard.writeText(JSON.stringify(buildJSON(),null,2));
+$('#btnDownload').onclick=downloadJSON;
+$('#btnReset').onclick=()=>{localStorage.removeItem('notes-elite-pipe'); location.reload();};
 
-/* ===== Boot: try multiple sources; show status ===== */
-async function boot(fromUrl){
-  const urlInput = $('#optionsUrl');
-  const status = $('#sourceStatus');
-  const tryList = fromUrl ? [fromUrl] : [JSD_URL, RAW_URL, GH_HTML];
-  urlInput.value = fromUrl || JSD_URL;
-
+/* ------- Boot ------- */
+async function boot(from){
+  const inp=$('#optionsUrl'), stat=$('#sourceStatus');
+  const list = from ? [from] : [JSD, RAW, GH];
+  inp.value = from || JSD;
   try{
-    const {text, source} = await loadOptions(tryList);
-    state.parsed = parseOptions(text);
-    state.sectionMap = buildSectionMap(state.parsed);
+    const {txt,src} = await loadOptions(list);
+    state.parsed = parsePipe(txt);
+    state.map = buildMap(state.parsed);
     save();
-    const sectionsFound = Object.keys(state.parsed).length;
-    status.textContent = `OK • ${sectionsFound} sections from ${new URL(source).hostname}`;
-    status.className = "status ok";
+    stat.textContent = `OK • ${Object.keys(state.parsed).length} sections from ${new URL(src).hostname}`;
+    stat.className = 'status ok';
   }catch(e){
-    status.textContent = `Could not load Options.txt (${e.message}). Using notes only.`;
-    status.className = "status bad";
-    state.parsed = {}; state.sectionMap = {}; save();
+    stat.textContent = `Failed to load Options.txt (${e.message})`;
+    stat.className = 'status bad';
+    state.parsed={}; state.map={}; save();
   }
+  // build UI
   buildUI();
 }
-$('#reloadBtn').onclick = ()=> boot($('#optionsUrl').value.trim());
-
-boot(); // initial
+$('#reloadBtn').onclick=()=>boot($('#optionsUrl').value.trim());
+boot();
 </script>
 </body>
 </html>
