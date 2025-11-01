@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>Notes Elite — Options.txt Powered</title>
+<title>Notes Elite — Options.txt Powered (Robust Loader)</title>
 <meta name="theme-color" content="#0b1016"/>
 
 <link rel="preload" as="image" href="https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg">
@@ -13,7 +13,7 @@
 :root{
   --bg:#0b1016; --panel:#0f1720; --ink:#e8f0f6; --muted:#cbd6e1; --line:#142533;
   --tile:#0b141f; --tile2:#0d1a26; --tileEdge:#20405a; --tileActive:#0f2218;
-  --brand:#7cc4ff; --ok:#2ecc71;
+  --brand:#7cc4ff; --ok:#2ecc71; --warn:#ffc857; --err:#ff6a6a;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -21,7 +21,7 @@ html{color-scheme:dark}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 ui-sans-serif,-apple-system,Segoe UI,Roboto,Arial;overflow:hidden}
 
 .app{
-  height:100dvh; display:grid; grid-template-rows:56px 1fr 56px;
+  height:100dvh; display:grid; grid-template-rows:64px 1fr 56px;
   background:
     url("https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg") right -40px top -40px/220px no-repeat,
     url("https://martinbibb-cmd.github.io/Fast-survey/assets/branch.svg") left -40px bottom -40px/220px no-repeat,
@@ -31,6 +31,13 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 ui-sans-serif
 .brand{display:flex;align-items:center;gap:10px;font-weight:700}
 .dot{width:10px;height:10px;border-radius:50%;background:var(--brand);box-shadow:0 0 10px var(--brand)}
 .hint{margin-left:auto;font-size:12px;opacity:.85}
+
+.sourceBar{display:flex;gap:8px;align-items:center; padding:6px 10px; background:#0e1722; border-bottom:1px solid var(--line)}
+.sourceBar input{flex:1; min-width:200px; background:#0a121c; color:var(--ink); border:1px solid #1a2b3d; border-radius:10px; padding:8px 10px}
+.sourceBar .status{font-size:12px;opacity:.9}
+.sourceBar .status.bad{color:var(--err)}
+.sourceBar .status.ok{color:var(--ok)}
+.btnSm{appearance:none;border:1px solid #21405a;background:#112233;color:var(--ink);padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600}
 
 .content{
   display:grid; grid-template-columns: 260px 1fr; gap:10px;
@@ -95,17 +102,23 @@ textarea{resize:vertical;min-height:84px}
 <div class="app">
   <div class="header">
     <div class="brand"><span class="dot"></span><span>Notes&nbsp;Elite</span></div>
-    <div class="hint">Tiles auto-load from <code>Options.txt</code>. Build JSON below.</div>
+    <div class="hint">Tiles load from <code>Options.txt</code> • Build JSON below.</div>
+  </div>
+
+  <!-- Source / status bar -->
+  <div class="sourceBar">
+    <span class="small">Options URL:</span>
+    <input id="optionsUrl" />
+    <button class="btnSm" id="reloadBtn">Reload</button>
+    <span id="sourceStatus" class="status">loading…</span>
   </div>
 
   <div class="content">
-    <!-- LEFT -->
     <aside class="sidebar">
       <h3>Sections</h3>
       <ul class="nav" id="nav"></ul>
     </aside>
 
-    <!-- RIGHT -->
     <main class="main" id="main"></main>
   </div>
 
@@ -137,139 +150,121 @@ textarea{resize:vertical;min-height:84px}
 
 <script>
 /* =========================
-   Config
+   Robust Options loader
    ========================= */
-const OPTIONS_URL = "https://raw.githubusercontent.com/martinbibb-cmd/Depot-notes/refs/heads/main/Options.txt";
+/* Preferred sources (try in order) — update your user/repo if needed */
+const RAW_URL   = "https://raw.githubusercontent.com/martinbibb-cmd/Depot-notes/main/Options.txt";
+const JSD_URL   = "https://cdn.jsdelivr.net/gh/martinbibb-cmd/Depot-notes@main/Options.txt";
+const GH_HTML   = "https://github.com/martinbibb-cmd/Depot-notes/blob/main/Options.txt"; // HTML fallback
 
-/* Canonical UI order (matches your screenshot + extras) */
+/* Canonical UI order (per your list) */
 const UI_SECTIONS = [
-  "Needs",
-  "Working at heights",
-  "System characteristics",
-  "Arse_cover_notes",
-  "Components that require assistance",
-  "Restrictions to work",
-  "External hazards",
-  "Delivery notes",
-  "Office notes",
-  "New boiler and controls",
-  "Flue",
-  "Pipe work",
-  "Disruption",
-  "Gas",
-  "Condensate",
-  "Boiler",
-  "Flush",
-  "Filter",
-  "Controls",
-  "Cylinder",
-  "Radiators",
-  "Customer actions",
-  "Summary"
+  "Needs","Working at heights","System characteristics","Arse_cover_notes",
+  "Components that require assistance","Restrictions to work","External hazards",
+  "Delivery notes","Office notes","New boiler and controls","Flue","Pipe work",
+  "Disruption","Gas","Condensate","Boiler","Flush","Filter","Controls",
+  "Cylinder","Radiators","Customer actions","Summary"
 ];
 
-/* Fallback tiles if Options.txt doesn't have a matching section */
-const FALLBACK = {
-  "Delivery notes": ["On drive","On street (near)","On street (far)","Permit required","Steps","Tight access","No rear access","Height restriction"],
-  "Flue": ["Horizontal","Vertical pitched","Vertical flat","Direct rear","Balanced"],
-  "Gas": ["Meter internal","Meter external","Unknown"],
-  "Condensate": ["Internal to waste","External run","Pump required"],
-  "Boiler": ["Kitchen","Utility","Airing cupboard","Loft"],
-  "Flush": ["Chemical flush","Powerflush","No flush required"],
-  "Filter": ["Magnetic filter","Strainer","No filter"],
-  "Controls": ["Weather comp","OpenTherm/Bus","Smart stat","Zoning"],
-  "Cylinder": ["Unvented","Vented (F&E)","No cylinder"],
-  "Radiators": ["TRVs present","TRVs missing on some","Microbore","Bypass required"],
-  "Customer actions": ["Clear access","Provide parking permit","Top-up credit meter","Move pets"]
-};
-
-/* Single-vs-multi rules (you can tweak) */
 const SINGLE_SELECT = new Set(["Flue","Gas","Condensate","Boiler","Flush","Filter","Cylinder"]);
 const W3W_IN_SECTION = "Delivery notes";
 
-/* =========================
-   State & helpers
-   ========================= */
+/* = State = */
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
-
-const state = Object.assign({
-  selections: {},   // { section : { value: boolean } }
-  notes: {},        // { section : "free text" }
-  custom: {},       // { section : ["custom line", ...] }
-  extras: {},       // not used now, reserved
-  w3w: null,
-  parsed: {}        // parsed Options.txt {section:[lines]}
-}, load());
-
-function save(){ localStorage.setItem('notes-elite-optxt', JSON.stringify(state)); }
-function load(){ try{ return JSON.parse(localStorage.getItem('notes-elite-optxt')||'{}'); }catch{ return {}; } }
+const state = Object.assign({ selections:{}, notes:{}, custom:{}, w3w:null, parsed:{}, sectionMap:{} }, load());
+function save(){ localStorage.setItem('notes-elite-optxt-robust', JSON.stringify(state)); }
+function load(){ try{ return JSON.parse(localStorage.getItem('notes-elite-optxt-robust')||'{}'); }catch{ return {}; } }
 function listOf(group){ return group ? Object.keys(group).filter(k=>group[k]) : []; }
-function oneOf(group){ if(!group) return ""; const k = Object.keys(group).find(x=>group[x]); return k||""; }
 function norm(s){ return (s||"").toLowerCase().replace(/\s+/g,' ').replace(/[_-]/g,' ').trim(); }
 function isThreeWords(s){ return /^[a-z]+\.([a-z]+)\.([a-z]+)$/i.test(s.trim().replace(/^\/+/,'')); }
 function isLatLng(s){ return /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(s.trim()); }
 
-/* Parse Options.txt -> { Section : [ lines ] } */
+/* ===== fetching with fallbacks (handles CORS) ===== */
+async function fetchText(url){
+  const r = await fetch(url, {cache:'no-store'});
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  // If html, try to extract <pre> content (GitHub blob view)
+  const ct = r.headers.get('content-type')||'';
+  const text = await r.text();
+  if (!/text\/plain|text\/.*|application\/octet-stream/i.test(ct) && /<html/i.test(text)){
+    const pre = text.match(/<table[^>]*class="highlight[^"]*"[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/i) || text.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+    if(pre){ return pre[1].replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&'); }
+  }
+  return text;
+}
+async function loadOptions(urls){
+  const status = $('#sourceStatus');
+  for (const u of urls){
+    try{
+      status.textContent = `loading from ${new URL(u).hostname}…`;
+      const t = await fetchText(u);
+      // sanity check: must contain [Section] style
+      if(!/\[[^\]]+\]/.test(t)) throw new Error('No [Section] headers detected');
+      status.textContent = `loaded from ${new URL(u).hostname}`;
+      status.className = "status ok";
+      return {text:t, source:u};
+    }catch(e){
+      status.textContent = `failed on ${new URL(u).hostname}: ${e.message}`;
+      status.className = "status bad";
+    }
+  }
+  throw new Error("All sources failed");
+}
+
+/* ===== parse [Section] blocks into { sec:[lines] } ===== */
 function parseOptions(txt){
-  const lines = txt.split(/\r?\n/);
+  const lines = txt.replace(/\r\n/g,'\n').split('\n');
   const out = {}; let cur = null;
   for(const raw of lines){
-    const line = raw.trim();
-    if(!line) continue;
-    const m = line.match(/^\[(.+?)\]$/);
+    const m = raw.match(/^\s*\[(.+?)\]\s*$/);
     if(m){ cur = m[1]; out[cur] = out[cur] || []; continue; }
     if(!cur) continue;
-    if(line.startsWith('- ')) out[cur].push(line.slice(2));
-    else out[cur].push(line);
+    const line = raw.replace(/\s+$/,'');
+    if(!line) continue;
+    if(line.trim().startsWith('- ')) out[cur].push(line.trim().slice(2));
+    else out[cur].push(line.trim());
   }
   return out;
 }
 
-/* Map Options.txt section names -> UI sections (for fuzzy differences) */
+/* ===== map parsed -> UI names (fuzzy) ===== */
 function buildSectionMap(parsed){
-  const map = {}; // uiName -> tiles[]
   const byNorm = {};
-  Object.entries(parsed).forEach(([sec, arr])=> byNorm[norm(sec)] = arr);
+  Object.entries(parsed).forEach(([k,v])=> byNorm[norm(k)] = v);
 
+  const map = {};
   UI_SECTIONS.forEach(ui=>{
-    if (ui==="Summary") return;
-    // direct
+    if(ui==="Summary"){ map[ui]=[]; return; }
     let tiles = byNorm[norm(ui)];
-    // common alternates
+
     if(!tiles){
-      const candidates = {
-        "working at heights": ["working at height","wah","access & wah","access and wah"],
+      const aliases = {
+        "working at heights": ["working at height","wah","access & wah","access and wah","working at heights (wah)"],
         "arse_cover_notes": ["arse cover notes","arse-cover-notes","cover notes","cover_notes"],
         "system characteristics": ["system chars","system characteristics (a pack)","system"],
         "components that require assistance": ["components require assistance","assistance components"],
         "restrictions to work": ["restrictions","work restrictions"],
-        "external hazards": ["hazards","external"],
+        "external hazards": ["hazards","external hazards & risks","hazards external"],
         "delivery notes": ["delivery","parking","delivery & parking","delivery and parking"],
-        "office notes": ["office","admin notes"],
-        "new boiler and controls": ["new boiler","new boiler & controls","boiler and controls"],
-        "pipe work": ["pipework","pipe-work","pipe work notes"],
-        "customer actions": ["customer to","customer actions required","customer jobs"]
+        "office notes": ["office","admin notes","office/admin notes"],
+        "new boiler and controls": ["new boiler","new boiler & controls","boiler and controls","new boiler controls"],
+        "pipe work": ["pipework","pipe-work","pipe work notes","pipes"],
+        "customer actions": ["customer to","customer actions required","customer jobs","actions for customer"]
       }[norm(ui)];
-      if(candidates){
-        for(const c of candidates){ if(byNorm[c]){ tiles = byNorm[c]; break; } }
-      }
+      if(aliases){ for(const a of aliases){ if(byNorm[a]){ tiles = byNorm[a]; break; } }
     }
-    if(!tiles && FALLBACK[ui]) tiles = FALLBACK[ui];
     map[ui] = Array.isArray(tiles) ? tiles.filter(Boolean) : [];
   });
   return map;
 }
 
-/* =========================
-   Build UI (nav + panels)
-   ========================= */
+/* ===== UI build ===== */
 const nav = $('#nav');
 const main = $('#main');
 
 function buildUI(){
-  nav.innerHTML = '';
-  main.innerHTML = '';
+  nav.innerHTML = ''; main.innerHTML = '';
 
   UI_SECTIONS.forEach((sec, i)=>{
     const li = document.createElement('li');
@@ -277,24 +272,22 @@ function buildUI(){
     nav.appendChild(li);
 
     const panel = document.createElement('section');
-    panel.className = 'panel';
-    panel.dataset.section = sec;
-    panel.style.display = (i===0?'block':'none');
+    panel.className = 'panel'; panel.dataset.section = sec; panel.style.display = (i===0?'block':'none');
 
-    const tiles = (sec==="Summary") ? [] : (state.sectionMap?.[sec] || FALLBACK[sec] || []);
+    const tiles = (sec==="Summary") ? [] : (state.sectionMap?.[sec] || []);
     const isSingle = SINGLE_SELECT.has(sec);
     const w3wCtl = (sec===W3W_IN_SECTION);
 
     panel.innerHTML = `
-      <div class="sectionHead"><strong>${sec}</strong>${tiles.length?``:` <span class="small">(no tiles found in Options.txt; using free notes)</span>`}</div>
+      <div class="sectionHead">
+        <strong>${sec}</strong>
+        ${tiles.length?`<span class="small"> • ${tiles.length} options</span>`:`<span class="small" style="color:var(--warn)"> • no options found</span>`}
+      </div>
       <div class="sectionBody">
-        ${tiles.length?`<div class="tiles" data-tiles></div>`:''}
+        ${tiles.length?`<div class="tiles" data-tiles></div>`:`<div class="small">Add items under [${sec}] in Options.txt to see tiles here (still usable with notes).</div>`}
         ${w3wCtl?`
-          <div class="row">
-            <button class="btn" id="openW3W">What3Words…</button>
-            <span class="badge">Saved: <strong id="w3wView">—</strong></span>
-          </div>
-        `:''}
+          <div class="row"><button class="btn" id="openW3W">What3Words…</button>
+          <span class="badge">Saved: <strong id="w3wView">—</strong></span></div>`:''}
         ${sec!=="Summary"?`
           <textarea class="input" placeholder="Free-text notes for '${sec}'…" data-notes></textarea>
           <div class="row">
@@ -310,19 +303,16 @@ function buildUI(){
           </div>
           <div id="jsonPreview" class="copybox" aria-live="polite">No JSON yet.</div>
         `}
-      </div>
-    `;
+      </div>`;
     main.appendChild(panel);
 
-    // populate tiles
     if(tiles.length){
       const wrap = panel.querySelector('[data-tiles]');
       tiles.forEach(label=>{
         const div = document.createElement('div');
-        div.className = 'tile';
+        div.className='tile';
         div.innerHTML = `<div class="img"></div><div class="t">${label}</div>`;
-        div.dataset.value = label;
-        div.dataset.mode = isSingle ? 'single' : 'multi';
+        div.dataset.value = label; div.dataset.mode = isSingle?'single':'multi';
         wrap.appendChild(div);
       });
     }
@@ -331,11 +321,8 @@ function buildUI(){
   wirePanels();
 }
 
-/* Wire interactions for all panels */
 function wirePanels(){
   const panels = $$('.panel');
-
-  // nav
   $('#nav').addEventListener('click', (e)=>{
     const b = e.target.closest('button[data-target]'); if(!b) return;
     panels.forEach(p=>p.style.display = (p.dataset.section===b.dataset.target)?'block':'none');
@@ -346,9 +333,7 @@ function wirePanels(){
   panels.forEach(panel=>{
     const section = panel.dataset.section;
 
-    // tiles
     panel.querySelectorAll('.tile').forEach(tile=>{
-      // restore active
       if (state.selections?.[section]?.[tile.dataset.value]) tile.classList.add('active');
       tile.addEventListener('click', ()=>{
         const mode = tile.dataset.mode, val = tile.dataset.value;
@@ -368,14 +353,12 @@ function wirePanels(){
       });
     });
 
-    // notes
     const ta = panel.querySelector('[data-notes]');
     if (ta){
       ta.value = state.notes?.[section] || '';
       ta.addEventListener('input', e=>{ state.notes[section] = e.target.value; save(); });
     }
 
-    // custom lines
     const addBtn = panel.querySelector('[data-custom-add]');
     if (addBtn){
       const input = panel.querySelector('[data-custom-input]');
@@ -391,17 +374,14 @@ function wirePanels(){
       });
     }
 
-    // W3W
     if (section===W3W_IN_SECTION){
       const btn = panel.querySelector('#openW3W');
       const view = panel.querySelector('#w3wView');
-      btn.addEventListener('click', ()=> $('#w3wModal').classList.add('show'));
-      view.textContent = state.w3w?.words ? `///${state.w3w.words}` :
-                         (state.w3w?.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` :
-                         (state.w3w?.raw || '—'));
+      btn?.addEventListener('click', ()=> $('#w3wModal').classList.add('show'));
+      if(view) view.textContent = state.w3w?.words ? `///${state.w3w.words}` :
+                       (state.w3w?.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : (state.w3w?.raw||'—'));
     }
 
-    // Summary inline controls
     if (section==='Summary'){
       panel.querySelector('#buildNow').addEventListener('click', ()=> $('#jsonPreview').textContent = JSON.stringify(buildJSON(),null,2));
       panel.querySelector('#copyNow').addEventListener('click', ()=> navigator.clipboard.writeText(JSON.stringify(buildJSON(),null,2)));
@@ -410,9 +390,7 @@ function wirePanels(){
   });
 }
 
-/* =========================
-   W3W modal (manual only)
-   ========================= */
+/* ===== What3Words modal (manual only) ===== */
 $('#w3wClose').onclick = ()=> $('#w3wModal').classList.remove('show');
 $('#w3wGPS').onclick = ()=> navigator.geolocation?.getCurrentPosition(
   pos => { $('#w3wInput').value = `${pos.coords.latitude},${pos.coords.longitude}`; $('#w3wStatus').textContent='GPS captured'; },
@@ -431,20 +409,17 @@ $('#w3wSave').onclick = ()=>{
   else if (isLatLng(s)){ const [lat,lng]=s.split(',').map(x=>+x.trim()); state.w3w = {coords:{lat,lng}}; }
   else state.w3w = {raw:s};
   save(); $('#w3wModal').classList.remove('show');
-  // reflect in delivery panel if mounted
   const dv = document.querySelector('[data-section="Delivery notes"] #w3wView');
   if (dv) dv.textContent = state.w3w.words ? `///${state.w3w.words}` :
             (state.w3w.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : (state.w3w.raw||'—'));
 };
 
-/* =========================
-   JSON build
-   ========================= */
+/* ===== JSON build & footer ===== */
 function buildJSON(){
   const out = { meta:{
       generatedAt: new Date().toISOString(),
       what3words: state.w3w || null,
-      optionsSource: OPTIONS_URL
+      optionsSource: $('#optionsUrl').value
     }, sections:{} };
 
   for (const name of UI_SECTIONS){
@@ -452,17 +427,14 @@ function buildJSON(){
     const picks = listOf(state.selections[name]);
     const notes = state.notes?.[name] || '';
     const custom = state.custom?.[name] || [];
-
     const parts = [];
     if (picks.length) parts.push(picks.join('; '));
     if (custom.length) parts.push(custom.map(x=>`• ${x}`).join(' '));
     if (notes) parts.push(notes);
-
     out.sections[name] = parts.join(' ').trim();
   }
   return out;
 }
-
 function downloadJSON(){
   const data = buildJSON();
   const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -471,38 +443,36 @@ function downloadJSON(){
   a.download = `depot-notes_${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
   a.click();
 }
-$('#btnBuild').onclick = ()=>{ const d=buildJSON(); // jump to Summary
-  // show preview if we're on Summary
-  const preview = document.querySelector('[data-section="Summary"] #jsonPreview');
-  if (preview){ preview.textContent = JSON.stringify(d,null,2); }
-  // switch nav to Summary
-  const btn = Array.from($$('#nav button')).find(b=>b.dataset.target==='Summary'); if(btn) btn.click();
-};
+$('#btnBuild').onclick = ()=>{ const d=buildJSON(); const p=document.querySelector('[data-section="Summary"] #jsonPreview'); if(p){ p.textContent=JSON.stringify(d,null,2);} const btn=[...$$('#nav button')].find(b=>b.dataset.target==='Summary'); btn?.click(); };
 $('#btnCopy').onclick = ()=> navigator.clipboard.writeText(JSON.stringify(buildJSON(),null,2));
 $('#btnDownload').onclick = downloadJSON;
-$('#btnReset').onclick = ()=>{ localStorage.removeItem('notes-elite-optxt'); location.reload(); };
+$('#btnReset').onclick = ()=>{ localStorage.removeItem('notes-elite-optxt-robust'); location.reload(); };
 
-/* =========================
-   Boot: fetch Options.txt, parse, map, build UI
-   ========================= */
-(async function boot(){
+/* ===== Boot: try multiple sources; show status ===== */
+async function boot(fromUrl){
+  const urlInput = $('#optionsUrl');
+  const status = $('#sourceStatus');
+  const tryList = fromUrl ? [fromUrl] : [JSD_URL, RAW_URL, GH_HTML];
+  urlInput.value = fromUrl || JSD_URL;
+
   try{
-    if (!state.parsed || !Object.keys(state.parsed).length){
-      const r = await fetch(OPTIONS_URL, {cache:'no-store'});
-      const txt = await r.text();
-      state.parsed = parseOptions(txt);
-      save();
-    }
+    const {text, source} = await loadOptions(tryList);
+    state.parsed = parseOptions(text);
+    state.sectionMap = buildSectionMap(state.parsed);
+    save();
+    const sectionsFound = Object.keys(state.parsed).length;
+    status.textContent = `OK • ${sectionsFound} sections from ${new URL(source).hostname}`;
+    status.className = "status ok";
   }catch(e){
-    // parsing failed is fine; we’ll use FALLBACK tiles everywhere
-    console.warn('Options.txt load failed; using fallbacks', e);
+    status.textContent = `Could not load Options.txt (${e.message}). Using notes only.`;
+    status.className = "status bad";
+    state.parsed = {}; state.sectionMap = {}; save();
   }
-  state.sectionMap = buildSectionMap(state.parsed||{});
-  save();
-
-  // Build nav + panels from map
   buildUI();
-})();
+}
+$('#reloadBtn').onclick = ()=> boot($('#optionsUrl').value.trim());
+
+boot(); // initial
 </script>
 </body>
 </html>
