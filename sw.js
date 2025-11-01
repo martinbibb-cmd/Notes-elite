@@ -1,7 +1,8 @@
-const CACHE_NAME = 'notes-elite-v1';
+const CACHE_NAME = 'notes-elite-v2';
 const OFFLINE_URLS = [
   './',
-  './index.html'
+  './index.html',
+  './sw.js'
 ];
 
 self.addEventListener('install', (event) => {
@@ -20,13 +21,25 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
     return;
   }
+
   event.respondWith(
-    caches.match(event.request).then((cached) =>
-      cached || fetch(event.request).then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
-        return response;
-      }).catch(() => caches.match('./index.html'))
-    )
+    caches.match(event.request).then((cached) => {
+      if (cached) {
+        return cached;
+      }
+
+      return fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
+          return response;
+        })
+        .catch(() => {
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+          return caches.match(event.request);
+        });
+    })
   );
 });
