@@ -1,25 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Notes Elite — Full Tiles Wizard</title>
-<meta name="theme-color" content="#0b1016" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Notes Elite — Sections to JSON</title>
+<meta name="theme-color" content="#0b1016"/>
 
-<!-- Decorative graphics borrowed from Fast-survey (images only; no CSS/JS) -->
+<!-- Decorative images only (no CSS/JS pulled in) -->
 <link rel="preload" as="image" href="https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg">
 <link rel="preload" as="image" href="https://martinbibb-cmd.github.io/Fast-survey/assets/branch.svg">
 
 <style>
 :root{
-  --bg:#0b1016; --panel:#0f1720; --ink:#e8f0f6; --muted:#cbd6e1;
-  --line:#152738; --brand:#7cc4ff; --ok:#2ecc71; --warn:#ffc857;
-  --tile:#0b141f; --tile2:#0d1a26; --tileActive:#0f2218; --tileLine:#21445f;
+  --bg:#0b1016; --panel:#0f1720; --ink:#e8f0f6; --muted:#cbd6e1; --line:#142533;
+  --tile:#0b141f; --tile2:#0d1a26; --tileEdge:#20405a; --tileActive:#0f2218;
+  --brand:#7cc4ff; --ok:#2ecc71;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
 html{color-scheme:dark}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 ui-sans-serif,-apple-system,Segoe UI,Roboto,Arial;overflow:hidden}
+
 .app{
   height:100dvh; display:grid; grid-template-rows:56px 1fr 56px;
   background:
@@ -30,635 +31,448 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 ui-sans-serif
 .header{display:flex;align-items:center;gap:12px;padding:0 14px;background:#0c151f;border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700}
 .dot{width:10px;height:10px;border-radius:50%;background:var(--brand);box-shadow:0 0 10px var(--brand)}
-.stepper{margin-left:auto;font-size:12px;opacity:.9}
+.hint{margin-left:auto;font-size:12px;opacity:.85}
 
-.content{position:relative;overflow:hidden}
-.page{
-  position:absolute; inset:0; padding:14px; display:flex; flex-direction:column; gap:12px;
-  transform:translateX(100%); opacity:0; pointer-events:none; transition:transform .18s ease,opacity .18s ease;
+.content{
+  display:grid; grid-template-columns: 260px 1fr; gap:10px;
+  padding:10px; overflow:hidden; /* page scroll locked; inner areas scroll */
 }
-.page.active{transform:translateX(0);opacity:1;pointer-events:auto}
-.page .title{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
-.grid{
-  flex:1; overflow:auto; overscroll-behavior:contain;
-  display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px;
-  padding:2px;
+@media (max-width: 900px){ .content{ grid-template-columns: 1fr; } }
+
+.sidebar{
+  background:#0f1720;border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:100%;
 }
+.sidebar h3{margin:10px 12px;font-size:13px;opacity:.9}
+.nav{list-style:none;margin:0;padding:6px}
+.nav button{
+  width:100%; text-align:left; display:block; border:0; background:transparent; color:var(--ink);
+  padding:10px 12px; border-radius:10px; cursor:pointer;
+}
+.nav button.active{background:#0e1a28; border:1px solid #1d3a54}
+.nav button:hover{background:#0d1620}
+
+.main{
+  background:#0f1720;border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:100%;
+  display:flex; flex-direction:column;
+}
+.sectionHead{position:sticky;top:0;background:#0f1720;border-bottom:1px solid var(--line);padding:10px 12px;z-index:1}
+.sectionBody{padding:10px 12px; display:grid; gap:10px}
+
+.tiles{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px}
 .tile{
-  background:linear-gradient(180deg,var(--tile),var(--tile2)); border:1px solid var(--tileLine);
-  border-radius:14px; padding:12px; cursor:pointer; display:flex; flex-direction:column; gap:8px;
-  min-height:120px; transition:transform .06s ease, border-color .1s ease, background .1s ease;
+  background:linear-gradient(180deg,var(--tile),var(--tile2));
+  border:1px solid var(--tileEdge); border-radius:14px; padding:12px; cursor:pointer;
+  min-height:88px; display:flex; flex-direction:column; gap:6px; transition:transform .06s ease,border-color .1s ease,background .1s ease;
 }
-.tile:hover{ transform:translateY(-1px) }
-.tile.active{ border-color:var(--ok); background:var(--tileActive) }
+.tile:hover{transform:translateY(-1px)}
+.tile.active{border-color:var(--ok); background:var(--tileActive)}
+.tile .img{height:34px;background:url("https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg") right/contain no-repeat;opacity:.9}
 .tile .t{font-weight:700}
-.tile .s{font-size:12px;opacity:.9}
-.tile .img{
-  height:40px; opacity:.9; background:url("https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg") right/contain no-repeat;
-  mix-blend-mode:screen; filter:brightness(1.2);
-}
+.small{font-size:12px;opacity:.85}
 
-.controls{display:flex;gap:8px;flex-wrap:wrap}
-.input, textarea, select{
+.input, textarea{
   width:100%; background:#0a121c; color:var(--ink); border:1px solid #1a2b3d; border-radius:10px; padding:10px 12px; outline:none
 }
 textarea{resize:vertical;min-height:84px}
 
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.badge{font-size:12px;opacity:.85}
+
 .footer{display:flex;gap:8px;align-items:center;justify-content:center;padding:8px;background:#0c151f;border-top:1px solid var(--line)}
-.btn{
-  appearance:none;border:1px solid #21405a;background:#112233;color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600
-}
+.btn{appearance:none;border:1px solid #21405a;background:#112233;color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
 .btn.primary{border-color:#1f4d83;background:#113459}
 .btn.good{border-color:#1c5f3a;background:#0f2a1c}
 .btn.warn{border-color:#735a1a;background:#2b2410}
 .btn:active{transform:translateY(1px)}
-.kbd{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0a121c;border:1px solid #1f2a37;border-bottom-width:2px;border-radius:6px;padding:2px 6px}
 
-/* Modal */
+.copybox{white-space:pre-wrap;background:#0a121c;border:1px solid #1a2b3d;border-radius:10px;padding:10px;max-height:32dvh;overflow:auto}
+
 .modalBack{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
 .modal{width:min(720px,96vw);background:#0e1722;border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
-.modal .row{display:flex;gap:8px;flex-wrap:wrap}
-.modal .badge{font-size:12px;opacity:.9}
-.show{display:flex !important}
-
-/* Summary panel */
-.summary{
-  background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; display:grid; gap:10px
-}
-.copybox{white-space:pre-wrap;background:#0a121c;border:1px solid #1a2b3d;border-radius:10px;padding:10px;max-height:38dvh;overflow:auto}
-hr{border:0;border-top:1px solid var(--line);margin:6px 0}
-.small{font-size:12px;opacity:.85}
-
-/* No horizontal overflow anywhere */
-html,body,.content,.page{overflow-x:hidden}
+.show{display:flex!important}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="header">
     <div class="brand"><span class="dot"></span><span>Notes&nbsp;Elite</span></div>
-    <div class="stepper"><span id="stepText">Step 1 of 13</span> • <span class="small">Use <span class="kbd">←</span>/<span class="kbd">→</span></span></div>
+    <div class="hint">Scroll the left list and the right content. Build JSON below.</div>
   </div>
 
   <div class="content">
-    <!-- 1 CUSTOMER / PROPERTY -->
-    <section class="page active" data-page="0">
-      <div class="title"><strong>Customer & Property</strong></div>
-      <div class="grid">
-        <!-- Property type -->
-        <div class="tile" data-g="propertyType" data-t="single" data-v="Flat"><div class="img"></div><div class="t">Flat</div><div class="s">Single-storey dwelling</div></div>
-        <div class="tile" data-g="propertyType" data-t="single" data-v="Terraced"><div class="img"></div><div class="t">Terraced</div><div class="s">Mid or end terrace</div></div>
-        <div class="tile" data-g="propertyType" data-t="single" data-v="Semi-detached"><div class="img"></div><div class="t">Semi-detached</div><div class="s">Shares one side wall</div></div>
-        <div class="tile" data-g="propertyType" data-t="single" data-v="Detached"><div class="img"></div><div class="t">Detached</div><div class="s">No shared walls</div></div>
+    <!-- LEFT: sections list (scrolls) -->
+    <aside class="sidebar" id="sidebar">
+      <h3>Sections</h3>
+      <ul class="nav" id="nav">
+        <!-- order matches user screenshot + extras requested -->
+        <!-- We keep ids stable to map data -->
+        <li><button data-target="Needs" class="active">Needs</button></li>
+        <li><button data-target="Working at heights">Working at heights</button></li>
+        <li><button data-target="System characteristics">System characteristics</button></li>
+        <li><button data-target="Arse_cover_notes">Arse_cover_notes</button></li>
+        <li><button data-target="Components that require assistance">Components that require assistance</button></li>
+        <li><button data-target="Restrictions to work">Restrictions to work</button></li>
+        <li><button data-target="External hazards">External hazards</button></li>
+        <li><button data-target="Delivery notes">Delivery notes</button></li>
+        <li><button data-target="Office notes">Office notes</button></li>
+        <li><button data-target="New boiler and controls">New boiler and controls</button></li>
+        <li><button data-target="Flue">Flue</button></li>
+        <li><button data-target="Pipe work">Pipe work</button></li>
+        <li><button data-target="Disruption">Disruption</button></li>
+        <!-- Extras you asked for explicitly -->
+        <li><button data-target="Gas">Gas</button></li>
+        <li><button data-target="Condensate">Condensate</button></li>
+        <li><button data-target="Boiler">Boiler</button></li>
+        <li><button data-target="Flush">Flush</button></li>
+        <li><button data-target="Filter">Filter</button></li>
+        <li><button data-target="Controls">Controls</button></li>
+        <li><button data-target="Cylinder">Cylinder</button></li>
+        <li><button data-target="Radiators">Radiators</button></li>
+        <!-- Always present -->
+        <li><button data-target="Customer actions">Customer actions</button></li>
+        <li><button data-target="Summary">Summary (JSON)</button></li>
+      </ul>
+    </aside>
 
-        <!-- Bedrooms -->
-        <div class="tile" data-g="bedrooms" data-t="single" data-v="1-2"><div class="img"></div><div class="t">1–2 beds</div><div class="s">Compact demand</div></div>
-        <div class="tile" data-g="bedrooms" data-t="single" data-v="3"><div class="img"></div><div class="t">3 beds</div><div class="s">Typical family home</div></div>
-        <div class="tile" data-g="bedrooms" data-t="single" data-v="4+"><div class="img"></div><div class="t">4+ beds</div><div class="s">Higher HW demand</div></div>
-
-        <!-- Insulation (multi) -->
-        <div class="tile" data-g="insulation" data-t="multi" data-v="Cavity filled"><div class="img"></div><div class="t">Cavity filled</div></div>
-        <div class="tile" data-g="insulation" data-t="multi" data-v="Loft insulated"><div class="img"></div><div class="t">Loft insulated</div></div>
-        <div class="tile" data-g="insulation" data-t="multi" data-v="Solid walls"><div class="img"></div><div class="t">Solid walls</div></div>
-        <div class="tile" data-g="insulation" data-t="multi" data-v="Single glazing"><div class="img"></div><div class="t">Single glazing</div></div>
-      </div>
-      <div class="controls">
-        <input class="input" id="cust-notes" placeholder="Any extra customer/property notes…" />
-      </div>
-    </section>
-
-    <!-- 2 EXISTING / NEW SYSTEM OVERVIEW -->
-    <section class="page" data-page="1">
-      <div class="title"><strong>Systems Overview</strong></div>
-      <div class="grid">
-        <div class="tile" data-g="existing" data-t="single" data-v="Regular"><div class="img"></div><div class="t">Existing: Regular</div></div>
-        <div class="tile" data-g="existing" data-t="single" data-v="System"><div class="img"></div><div class="t">Existing: System</div></div>
-        <div class="tile" data-g="existing" data-t="single" data-v="Combi"><div class="img"></div><div class="t">Existing: Combi</div></div>
-        <div class="tile" data-g="existing" data-t="single" data-v="Warm air"><div class="img"></div><div class="t">Existing: Warm air</div></div>
-
-        <div class="tile" data-g="proposed" data-t="single" data-v="Regular"><div class="img"></div><div class="t">New: Regular</div></div>
-        <div class="tile" data-g="proposed" data-t="single" data-v="System"><div class="img"></div><div class="t">New: System</div></div>
-        <div class="tile" data-g="proposed" data-t="single" data-v="Combi"><div class="img"></div><div class="t">New: Combi</div></div>
-      </div>
-      <div class="controls">
-        <input class="input" id="sys-headline" placeholder="System recommendation headline (e.g., Vaillant ecoFIT + Mixergy 210L)" />
-        <textarea id="sys-why" placeholder="Why this system? Heat-loss, DHW profile, flue route, future upgrades…"></textarea>
-      </div>
-    </section>
-
-    <!-- 3 BOILER DETAILS -->
-    <section class="page" data-page="2">
-      <div class="title"><strong>Boiler</strong></div>
-      <div class="grid">
-        <div class="tile" data-g="boilerLoc" data-t="single" data-v="Kitchen"><div class="img"></div><div class="t">Location: Kitchen</div></div>
-        <div class="tile" data-g="boilerLoc" data-t="single" data-v="Utility"><div class="img"></div><div class="t">Location: Utility</div></div>
-        <div class="tile" data-g="boilerLoc" data-t="single" data-v="Airing cupboard"><div class="img"></div><div class="t">Location: Airing cupboard</div></div>
-        <div class="tile" data-g="boilerLoc" data-t="single" data-v="Loft"><div class="img"></div><div class="t">Location: Loft</div></div>
-
-        <div class="tile" data-g="boilerAccess" data-t="multi" data-v="Good access"><div class="img"></div><div class="t">Good access</div></div>
-        <div class="tile" data-g="boilerAccess" data-t="multi" data-v="Restricted access"><div class="img"></div><div class="t">Restricted access</div></div>
-
-        <div class="tile" data-g="boilerCond" data-t="multi" data-v="Boiler condition fair"><div class="img"></div><div class="t">Condition: fair</div></div>
-        <div class="tile" data-g="boilerCond" data-t="multi" data-v="Boiler condition poor"><div class="img"></div><div class="t">Condition: poor</div></div>
-      </div>
-      <div class="controls">
-        <input class="input" id="boiler-make" placeholder="Make / Model (e.g., Vaillant ecoFIT Pure 418)" />
-        <input class="input" id="boiler-kW" placeholder="Boiler size (kW)" />
-        <input class="input" id="boiler-year" placeholder="Approx install year" />
-      </div>
-    </section>
-
-    <!-- 4 FLUE -->
-    <section class="page" data-page="3">
-      <div class="title"><strong>Flue & Terminal</strong></div>
-      <div class="grid">
-        <div class="tile" data-g="flue" data-t="single" data-v="Horizontal"><div class="img"></div><div class="t">Horizontal</div></div>
-        <div class="tile" data-g="flue" data-t="single" data-v="Vertical pitched"><div class="img"></div><div class="t">Vertical (pitched)</div></div>
-        <div class="tile" data-g="flue" data-t="single" data-v="Vertical flat"><div class="img"></div><div class="t">Vertical (flat)</div></div>
-        <div class="tile" data-g="flue" data-t="single" data-v="Direct rear"><div class="img"></div><div class="t">Direct rear</div></div>
-
-        <div class="tile" data-g="flueNotes" data-t="multi" data-v="Plume expected"><div class="img"></div><div class="t">Plume expected</div></div>
-        <div class="tile" data-g="flueNotes" data-t="multi" data-v="Terminal clearance tight"><div class="img"></div><div class="t">Clearance tight</div></div>
-        <div class="tile" data-g="flueNotes" data-t="multi" data-v="Flue reroute planned"><div class="img"></div><div class="t">Reroute planned</div></div>
-      </div>
-      <div class="controls">
-        <input class="input" id="flue-extra" placeholder="Flue notes (e.g., plume management kit, terminal position…)" />
-      </div>
-    </section>
-
-    <!-- 5 CONDENSATE -->
-    <section class="page" data-page="4">
-      <div class="title"><strong>Condensate & Waste</strong></div>
-      <div class="grid">
-        <div class="tile" data-g="condensate" data-t="single" data-v="Internal to waste"><div class="img"></div><div class="t">Internal → waste</div></div>
-        <div class="tile" data-g="condensate" data-t="single" data-v="External run"><div class="img"></div><div class="t">External run</div></div>
-        <div class="tile" data-g="condensate" data-t="single" data-v="Pump required"><div class="img"></div><div class="t">Pump required</div></div>
-        <div class="tile" data-g="condNotes" data-t="multi" data-v="Insulate external"><div class="img"></div><div class="t">Insulate external</div></div>
-        <div class="tile" data-g="condNotes" data-t="multi" data-v="Increase to 32 mm"><div class="img"></div><div class="t">32 mm upgrade</div></div>
-      </div>
-      <div class="controls">
-        <input class="input" id="cond-extra" placeholder="Condensate route details / traps / soakaway…"/>
-      </div>
-    </section>
-
-    <!-- 6 GAS & METER -->
-    <section class="page" data-page="5">
-      <div class="title"><strong>Gas & Meter</strong></div>
-      <div class="grid">
-        <div class="tile" data-g="gasMeterLoc" data-t="single" data-v="Internal"><div class="img"></div><div class="t">Meter: Internal</div></div>
-        <div class="tile" data-g="gasMeterLoc" data-t="single" data-v="External"><div class="img"></div><div class="t">Meter: External</div></div>
-        <div class="tile" data-g="gasPipe" data-t="single" data-v="22 mm"><div class="img"></div><div class="t">Pipe: 22 mm</div></div>
-        <div class="tile" data-g="gasPipe" data-t="single" data-v="28 mm"><div class="img"></div><div class="t">Pipe: 28 mm</div></div>
-        <div class="tile" data-g="gasPipe" data-t="single" data-v="Mixed / unknown"><div class="img"></div><div class="t">Pipe: Mixed/unknown</div></div>
-
-        <div class="tile" data-g="gasNotes" data-t="multi" data-v="Upgrade likely"><div class="img"></div><div class="t">Upgrade likely</div></div>
-        <div class="tile" data-g="gasNotes" data-t="multi" data-v="Allow for reroute"><div class="img"></div><div class="t">Allow reroute</div></div>
-        <div class="tile" data-g="gasNotes" data-t="multi" data-v="Tightness test issues"><div class="img"></div><div class="t">Test issues</div></div>
-      </div>
-      <div class="controls">
-        <input class="input" id="gas-extra" placeholder="Meter position, ECV access, MP rating, observed issues…"/>
-      </div>
-    </section>
-
-    <!-- 7 CYLINDER & HOT WATER -->
-    <section class="page" data-page="6">
-      <div class="title"><strong>Cylinder & Hot Water</strong></div>
-      <div class="grid">
-        <div class="tile" data-g="cylType" data-t="single" data-v="Unvented"><div class="img"></div><div class="t">Unvented</div></div>
-        <div class="tile" data-g="cylType" data-t="single" data-v="Vented (F&E)"><div class="img"></div><div class="t">Vented (F&E)</div></div>
-        <div class="tile" data-g="cylType" data-t="single" data-v="No cylinder"><div class="img"></div><div class="t">No cylinder</div></div>
-
-        <div class="tile" data-g="cylSpace" data-t="multi" data-v="Space adequate"><div class="img"></div><div class="t">Space adequate</div></div>
-        <div class="tile" data-g="cylSpace" data-t="multi" data-v="Space tight"><div class="img"></div><div class="t">Space tight</div></div>
-        <div class="tile" data-g="cylNotes" data-t="multi" data-v="G3 discharge route clear"><div class="img"></div><div class="t">G3 discharge clear</div></div>
-        <div class="tile" data-g="cylNotes" data-t="multi" data-v="Discharge reroute required"><div class="img"></div><div class="t">Discharge reroute</div></div>
-      </div>
-      <div class="controls">
-        <input class="input" id="cyl-size" placeholder="Cylinder size (L) e.g., 170 / 210 / 250" />
-        <input class="input" id="cyl-make" placeholder="Cylinder make/model (Mixergy, Megaflo…)" />
-        <input class="input" id="cyl-extra" placeholder="Coil config, immersion, location, venting…" />
-      </div>
-    </section>
-
-    <!-- 8 RADIATORS -->
-    <section class="page" data-page="7">
-      <div class="title"><strong>Radiators</strong></div>
-      <div class="grid">
-        <div class="tile" data-g="rads" data-t="multi" data-v="TRVs present"><div class="img"></div><div class="t">TRVs present</div></div>
-        <div class="tile" data-g="rads" data-t="multi" data-v="TRVs missing on some"><div class="img"></div><div class="t">TRVs missing on some</div></div>
-        <div class="tile" data-g="rads" data-t="multi" data-v="Bypass required"><div class="img"></div><div class="t">Bypass required</div></div>
-        <div class="tile" data-g="rads" data-t="multi" data-v="Microbore present"><div class="img"></div><div class="t">Microbore present</div></div>
-      </div>
-      <div class="controls">
-        <input class="input" id="rad-count" placeholder="Approx number of radiators" />
-        <input class="input" id="rad-extra" placeholder="Any cold rooms, towel rails, extra upgrades…"/>
-      </div>
-    </section>
-
-    <!-- 9 FLUSH & FILTER -->
-    <section class="page" data-page="8">
-      <div class="title"><strong>Flush & Filter</strong></div>
-      <div class="grid">
-        <div class="tile" data-g="flush" data-t="single" data-v="Chemical flush"><div class="img"></div><div class="t">Chemical flush</div></div>
-        <div class="tile" data-g="flush" data-t="single" data-v="Powerflush"><div class="img"></div><div class="t">Powerflush</div></div>
-        <div class="tile" data-g="flush" data-t="single" data-v="No flush required"><div class="img"></div><div class="t">No flush</div></div>
-
-        <div class="tile" data-g="filter" data-t="single" data-v="Magnetic filter"><div class="img"></div><div class="t">Magnetic filter</div></div>
-        <div class="tile" data-g="filter" data-t="single" data-v="Strainer"><div class="img"></div><div class="t">Strainer</div></div>
-        <div class="tile" data-g="filter" data-t="single" data-v="No filter"><div class="img"></div><div class="t">No filter</div></div>
-      </div>
-      <div class="controls">
-        <input class="input" id="flush-extra" placeholder="Sludge evidence, dirty water, inhibitor plan, filter location…"/>
-      </div>
-    </section>
-
-    <!--10 CONTROLS & ELECTRICAL -->
-    <section class="page" data-page="9">
-      <div class="title"><strong>Controls & Electrical</strong></div>
-      <div class="grid">
-        <div class="tile" data-g="controls" data-t="multi" data-v="Weather comp"><div class="img"></div><div class="t">Weather comp</div></div>
-        <div class="tile" data-g="controls" data-t="multi" data-v="OpenTherm/Bus"><div class="img"></div><div class="t">OpenTherm/Bus</div></div>
-        <div class="tile" data-g="controls" data-t="multi" data-v="Smart stat"><div class="img"></div><div class="t">Smart stat</div></div>
-        <div class="tile" data-g="controls" data-t="multi" data-v="Zoning"><div class="img"></div><div class="t">Zoning</div></div>
-
-        <div class="tile" data-g="electrical" data-t="multi" data-v="FCU required"><div class="img"></div><div class="t">FCU required</div></div>
-        <div class="tile" data-g="electrical" data-t="multi" data-v="RCBO/MCB upgrade"><div class="img"></div><div class="t">RCBO/MCB upgrade</div></div>
-        <div class="tile" data-g="electrical" data-t="multi" data-v="Bonding checks"><div class="img"></div><div class="t">Bonding checks</div></div>
-      </div>
-      <div class="controls">
-        <input class="input" id="ctrl-extra" placeholder="Control location, wiring centre, network coverage…"/>
-      </div>
-    </section>
-
-    <!--11 DELIVERY & PARKING + W3W (MANUAL, NO API) -->
-    <section class="page" data-page="10">
-      <div class="title"><strong>Delivery & Parking</strong><span class="small">Manual What3Words; no API dependency.</span></div>
-      <div class="grid">
-        <div class="tile" data-g="parking" data-t="single" data-v="On drive"><div class="img"></div><div class="t">On drive</div></div>
-        <div class="tile" data-g="parking" data-t="single" data-v="On street (near)"><div class="img"></div><div class="t">On street — near</div></div>
-        <div class="tile" data-g="parking" data-t="single" data-v="On street (far)"><div class="img"></div><div class="t">On street — far</div></div>
-        <div class="tile" data-g="parking" data-t="single" data-v="Permit required"><div class="img"></div><div class="t">Permit required</div></div>
-
-        <div class="tile" data-g="delivery" data-t="multi" data-v="Steps"><div class="img"></div><div class="t">Steps</div></div>
-        <div class="tile" data-g="delivery" data-t="multi" data-v="Tight access"><div class="img"></div><div class="t">Tight access</div></div>
-        <div class="tile" data-g="delivery" data-t="multi" data-v="No rear access"><div class="img"></div><div class="t">No rear access</div></div>
-
-        <div class="tile" id="w3wTile"><div class="img"></div><div class="t">What3Words</div><div class="s">Tap to enter 3 words or lat,long</div></div>
-      </div>
-      <div class="controls">
-        <input class="input" id="del-notes" placeholder="Delivery/parking notes (e.g., height restrictions, time limits…)" />
-        <span class="small">W3W captured: <strong id="w3wView">—</strong></span>
-      </div>
-    </section>
-
-    <!--12 ACCESS / WAH & H&S -->
-    <section class="page" data-page="11">
-      <div class="title"><strong>Access / WAH & H&S</strong></div>
-      <div class="grid">
-        <div class="tile" data-g="access" data-t="multi" data-v="Loft access OK"><div class="img"></div><div class="t">Loft access OK</div></div>
-        <div class="tile" data-g="access" data-t="multi" data-v="Working at height"><div class="img"></div><div class="t">Working at height</div></div>
-        <div class="tile" data-g="access" data-t="multi" data-v="Scaffold required"><div class="img"></div><div class="t">Scaffold required</div></div>
-        <div class="tile" data-g="hs" data-t="multi" data-v="Asbestos suspected"><div class="img"></div><div class="t">Asbestos suspected</div></div>
-        <div class="tile" data-g="hs" data-t="multi" data-v="Permit to work"><div class="img"></div><div class="t">Permit to work</div></div>
-      </div>
-      <div class="controls">
-        <textarea id="obs" placeholder="Observations, caveats, risks…"></textarea>
-      </div>
-    </section>
-
-    <!--13 SUMMARY -->
-    <section class="page" data-page="12">
-      <div class="title"><strong>Summary → Depot sections</strong></div>
-      <div class="summary">
-        <div class="controls">
-          <button class="btn" id="btnBuild">Build Summary</button>
-          <button class="btn primary" id="btnCopy">Copy Text</button>
-          <button class="btn good" id="btnJSON">Download JSON</button>
-        </div>
-        <div id="summaryBox" class="copybox" aria-live="polite">No summary yet.</div>
-        <div class="small">Sections: Customer details, Property, Existing system, New system, Boiler, Flue & terminal, Condensate & waste, Gas & meter, Electrical & controls, Cylinders & HW, Radiators, Flush & Filter, Access & WAH, H&S / Asbestos, Delivery & Parking, Observations, System recommendation.</div>
-      </div>
-    </section>
+    <!-- RIGHT: active section (scrolls) -->
+    <main class="main" id="main">
+      <!-- The section panels are generated by JS using CONFIG below -->
+    </main>
   </div>
 
   <div class="footer">
-    <button class="btn" id="prevBtn">← Back</button>
-    <button class="btn primary" id="nextBtn">Next →</button>
-    <button class="btn warn" id="resetBtn">Reset</button>
+    <button class="btn" id="btnBuild">Build JSON</button>
+    <button class="btn primary" id="btnCopy">Copy JSON</button>
+    <button class="btn good" id="btnDownload">Download JSON</button>
+    <button class="btn warn" id="btnReset">Reset</button>
   </div>
 </div>
 
-<!-- What3Words modal (MANUAL NO-API) -->
-<div class="modalBack" id="w3wBack">
+<!-- What3Words (manual; no API dependency) -->
+<div class="modalBack" id="w3wModal">
   <div class="modal">
-    <strong>What3Words (manual capture — no API)</strong>
-    <div class="row"><input class="input" id="w3wInput" placeholder="filled.count.soap  or  50.7341,-1.7763" /></div>
+    <strong>What3Words (manual)</strong>
+    <input class="input" id="w3wInput" placeholder="filled.count.soap  or  50.7341,-1.7763"/>
     <div class="row">
       <button class="btn" id="w3wValidate">Validate format</button>
       <button class="btn" id="w3wGPS">Use device GPS</button>
-      <span class="badge small" id="w3wStatus">Idle</span>
+      <span class="badge" id="w3wStatus">Idle</span>
     </div>
     <div class="row">
       <button class="btn primary" id="w3wSave">Save</button>
       <button class="btn" id="w3wClose">Close</button>
     </div>
-    <span class="small">Accepts <code>word.word.word</code> (stored as-is) or <code>lat,long</code>. No network requests.</span>
+    <span class="small">We store what you enter — no network calls.</span>
   </div>
 </div>
 
 <script>
-/* --------- helpers --------- */
-const $  = sel => document.querySelector(sel);
-const $$ = sel => document.querySelectorAll(sel);
-
-function save(){ localStorage.setItem('notes-elite-full', JSON.stringify(state)); }
-function load(){ try{ return JSON.parse(localStorage.getItem('notes-elite-full')||'{}'); }catch{ return {}; } }
-function oneOf(group){ if(!group) return ''; const k = Object.keys(group).find(x=>group[x]); return k||''; }
-function listOf(group){ if(!group) return []; return Object.keys(group).filter(x=>group[x]); }
-function has(group,val){ return !!(group && group[val]); }
-function sentence(parts){ return parts.filter(Boolean).join(' '); }
-
-/* --------- state --------- */
-const state = Object.assign({
-  page:0,
-  picks:{}, // group -> { value:true }
-  fields:{
-    custNotes:'',
-    sysHeadline:'',
-    sysWhy:'',
-    delNotes:'',
-    obs:'',
-    // boiler
-    boilerMake:'', boilerKW:'', boilerYear:'',
-    // flue / condensate / gas / cylinder / rads / flush / filter / controls
-    flueExtra:'', condExtra:'', gasExtra:'', cylSize:'', cylMake:'', cylExtra:'',
-    radCount:'', radExtra:'', flushExtra:'', ctrlExtra:''
+/* =========================
+   CONFIG: Tiles per section
+   (add/rename freely — UI builds itself)
+   ========================= */
+const CONFIG = {
+  "Needs": {
+    type:"multi",
+    tiles:[
+      "Hot water priority","Keep existing controls","Budget sensitive",
+      "Low disruption preferred","Future heat pump ready"
+    ]
   },
-  w3w:null // { words? , coords? }
+  "Working at heights": { type:"multi", tiles:["Roof work","Ladder only","Scaffold required","Loft access OK"] },
+  "System characteristics": {
+    type:"multi",
+    tiles:["Microbore present","Sealed system","Open vented","Low mains pressure","Water softener on site"]
+  },
+  "Arse_cover_notes": { type:"multi", tiles:["Customer informed of shutting water","Customer retains old boiler","Customer to clear access"] },
+  "Components that require assistance": { type:"multi", tiles:["Heavy cylinder","Boiler in loft","Access steps","Difficult flue route"] },
+  "Restrictions to work": { type:"multi", tiles:["No weekend work","Noise restrictions","Permit for parking","No rear access"] },
+  "External hazards": { type:"multi", tiles:["Asbestos suspected","Vermin evidence","Mould/damp present","Combustibles near boiler"] },
+  "Delivery notes": {
+    type:"multi",
+    tiles:["On drive","On street (near)","On street (far)","Permit required","Steps","Tight access","No rear access","Height restriction"],
+    w3w:true  // enables W3W control in this section
+  },
+  "Office notes": { type:"multi", tiles:["Book electrician","Book roofer","Arrange G3 engineer","Order long flue kit"] },
+  "New boiler and controls": {
+    type:"multi",
+    tiles:["Combi","System","Regular","Weather comp","OpenTherm/Bus","Smart stat","Zoning"]
+  },
+  "Flue": { type:"single", tiles:["Horizontal","Vertical pitched","Vertical flat","Direct rear","Balanced"] },
+  "Pipe work": { type:"multi", tiles:["Gas upgrade likely","Condensate upgrade 32mm","Bypass required","Reroute pipework"] },
+  "Disruption": { type:"multi", tiles:["1 day","2 days",">2 days","Some redecoration","Significant making good"] },
+  "Gas": { type:"single", tiles:["Meter internal","Meter external","Unknown"], extras:["Pipe 22 mm","Pipe 28 mm","Mixed/unknown"] },
+  "Condensate": { type:"single", tiles:["Internal to waste","External run","Pump required"] },
+  "Boiler": { type:"single", tiles:["Kitchen","Utility","Airing cupboard","Loft"] },
+  "Flush": { type:"single", tiles:["Chemical flush","Powerflush","No flush required"] },
+  "Filter": { type:"single", tiles:["Magnetic filter","Strainer","No filter"] },
+  "Controls": { type:"multi", tiles:["Weather comp","OpenTherm/Bus","Smart stat","Wired centre present","Wireless stat"] },
+  "Cylinder": { type:"single", tiles:["Unvented","Vented (F&E)","No cylinder"] },
+  "Radiators": { type:"multi", tiles:["TRVs present","TRVs missing on some","Microbore","Add towel rail"] },
+  "Customer actions": { type:"multi", tiles:["Clear access","Provide parking permit","Top-up credit meter","Move pets"] },
+  "Summary": { type:"summary" }
+};
+
+/* =========================
+   STATE & helpers
+   ========================= */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+const state = Object.assign({
+  selections: {},   // { section : { value: boolean } }
+  notes: {},        // { section : "free text" }
+  custom: {},       // { section : ["custom line", ...] }
+  extras: {},       // for small key/value bits per section
+  w3w: null         // { words? , coords? , raw? }
 }, load());
 
-/* --------- navigation --------- */
-function go(n){
-  const max = 12;
-  state.page = Math.max(0, Math.min(max, n));
-  $$('.page').forEach(p=>p.classList.remove('active'));
-  $(`.page[data-page="${state.page}"]`).classList.add('active');
-  $('#stepText').textContent = `Step ${state.page+1} of ${max+1}`;
-  save();
+function save(){ localStorage.setItem('notes-elite-sections', JSON.stringify(state)); }
+function load(){ try{ return JSON.parse(localStorage.getItem('notes-elite-sections')||'{}'); }catch{ return {}; } }
+function listOf(group){ return group ? Object.keys(group).filter(k=>group[k]) : []; }
+function oneOf(group){ if(!group) return ""; const k = Object.keys(group).find(x=>group[x]); return k||""; }
+function isThreeWords(s){ return /^[a-z]+\.([a-z]+)\.([a-z]+)$/i.test(s.trim().replace(/^\/+/,'')); }
+function isLatLng(s){ return /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(s.trim()); }
+
+/* =========================
+   BUILD UI
+   ========================= */
+const main = $('#main');
+for (const [section, cfg] of Object.entries(CONFIG)){
+  const panel = document.createElement('section');
+  panel.className = 'panel';
+  panel.dataset.section = section;
+
+  panel.innerHTML = `
+    <div class="sectionHead"><strong>${section}</strong></div>
+    <div class="sectionBody">
+      ${cfg.type!=="summary" ? `<div class="tiles" data-tiles></div>` : `
+        <div class="row">
+          <button class="btn" id="buildNow">Build JSON</button>
+          <button class="btn primary" id="copyNow">Copy JSON</button>
+          <button class="btn good" id="downloadNow">Download JSON</button>
+        </div>
+        <div id="jsonPreview" class="copybox" aria-live="polite">No JSON yet.</div>
+      `}
+      ${cfg.w3w ? `
+      <div class="row">
+        <button class="btn" id="openW3W">What3Words…</button>
+        <span class="badge">Saved: <strong id="w3wView">—</strong></span>
+      </div>` : ``}
+      ${cfg.extras ? `
+      <div class="row">
+        ${cfg.extras.map(x=>`<label class="small"><input type="checkbox" data-extra="${x}"/> ${x}</label>`).join(' ')}
+      </div>` : ``}
+      ${cfg.type!=="summary" ? `
+      <textarea class="input" placeholder="Free-text notes for '${section}'…"
+        data-notes></textarea>
+      <div class="row">
+        <input class="input" placeholder="Add custom line…" data-custom-input />
+        <button class="btn" data-custom-add>Add</button>
+      </div>
+      <div class="small" data-custom-list></div>
+      ` : ``}
+    </div>
+  `;
+  main.appendChild(panel);
+
+  // populate tiles
+  if (cfg.type!=="summary"){
+    const wrap = panel.querySelector('[data-tiles]');
+    (cfg.tiles||[]).forEach(label=>{
+      const div = document.createElement('div');
+      div.className = 'tile';
+      div.innerHTML = `<div class="img"></div><div class="t">${label}</div>`;
+      div.dataset.value = label;
+      div.dataset.mode = cfg.type; // single or multi
+      wrap.appendChild(div);
+    });
+  }
 }
-$('#prevBtn').onclick = ()=> go(state.page-1);
-$('#nextBtn').onclick = ()=> go(state.page+1);
-document.addEventListener('keydown',(e)=>{
-  if(e.target.closest('input,textarea,select')) return;
-  if(e.key==='ArrowRight') go(state.page+1);
-  if(e.key==='ArrowLeft') go(state.page-1);
+
+/* =========================
+   SIDEBAR NAV
+   ========================= */
+const panels = Array.from($$('.panel'));
+panels[0].classList.add('active'); // first visible
+function show(section){
+  panels.forEach(p=>p.style.display = (p.dataset.section===section) ? 'block':'none');
+  $$('#nav button').forEach(b=> b.classList.toggle('active', b.dataset.target===section));
+  // ensure right column scrolls
+  $('#main').scrollTop = 0;
+}
+show('Needs');
+$('#nav').addEventListener('click', (e)=>{
+  const b = e.target.closest('button[data-target]'); if(!b) return;
+  show(b.dataset.target);
 });
 
-/* --------- tile toggles --------- */
-function toggleTile(el){
-  const g = el.dataset.g, t = el.dataset.t, v = el.dataset.v || el.querySelector('.t')?.textContent;
-  state.picks[g] = state.picks[g] || {};
-  if(t==='single'){
-    state.picks[g] = {};
-    state.picks[g][v] = true;
-    $$(`.tile[data-g="${g}"]`).forEach(sib=>sib.classList.remove('active'));
+/* =========================
+   TILE EVENTS + restore state
+   ========================= */
+function toggleTile(section, el){
+  const val = el.dataset.value, mode = el.dataset.mode;
+  state.selections[section] = state.selections[section] || {};
+  if (mode === 'single'){
+    // clear siblings
+    [...el.parentElement.children].forEach(sib=>{
+      sib.classList.remove('active');
+      if (sib!==el && state.selections[section]) delete state.selections[section][sib.dataset.value];
+    });
+    state.selections[section][val] = true;
     el.classList.add('active');
-  }else{
-    state.picks[g][v] = !state.picks[g][v];
-    el.classList.toggle('active', !!state.picks[g][v]);
+  } else {
+    state.selections[section][val] = !state.selections[section][val];
+    el.classList.toggle('active', !!state.selections[section][val]);
   }
   save();
 }
-$$('.tile').forEach(t=>{
-  if(t.id==='w3wTile') return;
-  t.addEventListener('click', ()=>toggleTile(t));
+
+panels.forEach(panel=>{
+  const section = panel.dataset.section;
+
+  // tiles
+  panel.querySelectorAll('.tile').forEach(tile=>{
+    // restore active
+    if (state.selections?.[section]?.[tile.dataset.value]) tile.classList.add('active');
+    tile.addEventListener('click', ()=> toggleTile(section, tile));
+  });
+
+  // notes
+  const ta = panel.querySelector('[data-notes]');
+  if (ta){
+    ta.value = state.notes?.[section] || '';
+    ta.addEventListener('input', e=>{ state.notes[section] = e.target.value; save(); });
+  }
+
+  // custom lines
+  const addBtn = panel.querySelector('[data-custom-add]');
+  if (addBtn){
+    const input = panel.querySelector('[data-custom-input]');
+    const list = panel.querySelector('[data-custom-list]');
+    function renderCustom(){
+      const arr = state.custom?.[section] || [];
+      list.innerHTML = arr.map((t,i)=>`<span class="badge">• ${t} <a href="#" data-del="${i}">×</a></span>`).join(' ');
+    }
+    renderCustom();
+    addBtn.addEventListener('click', ()=>{
+      const v = (input.value||'').trim(); if(!v) return;
+      state.custom[section] = state.custom[section] || [];
+      state.custom[section].push(v); input.value='';
+      save(); renderCustom();
+    });
+    list.addEventListener('click', e=>{
+      const idx = e.target.getAttribute('data-del'); if(idx===null) return;
+      state.custom[section].splice(+idx,1); save(); renderCustom();
+      e.preventDefault();
+    });
+  }
+
+  // extras (checkbox bits)
+  panel.querySelectorAll('input[type="checkbox"][data-extra]').forEach(ch=>{
+    const key = ch.getAttribute('data-extra');
+    const map = state.extras[section] = state.extras[section] || {};
+    ch.checked = !!map[key];
+    ch.addEventListener('change', ()=>{ map[key]=ch.checked; save(); });
+  });
+
+  // W3W in Delivery notes
+  if (CONFIG[section]?.w3w){
+    panel.querySelector('#openW3W').addEventListener('click', ()=> $('#w3wModal').classList.add('show'));
+    if (state.w3w) panel.querySelector('#w3wView').textContent =
+      state.w3w.words ? `///${state.w3w.words}` :
+      (state.w3w.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : (state.w3w.raw||'—'));
+  }
+
+  // Summary panel controls
+  if (section==='Summary'){
+    panel.querySelector('#buildNow').addEventListener('click', ()=>{ $('#jsonPreview').textContent = JSON.stringify(buildJSON(), null, 2); });
+    panel.querySelector('#copyNow').addEventListener('click', ()=> navigator.clipboard.writeText(JSON.stringify(buildJSON(),null,2)));
+    panel.querySelector('#downloadNow').addEventListener('click', downloadJSON);
+  }
 });
 
-/* --------- inputs bind --------- */
-function bind(id, key){
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.value = state.fields[key]||'';
-  el.oninput = e=>{ state.fields[key] = e.target.value; save(); };
-}
-bind('cust-notes','custNotes');
-bind('sys-headline','sysHeadline');
-bind('sys-why','sysWhy');
-bind('del-notes','delNotes');
-bind('obs','obs');
-
-bind('boiler-make','boilerMake');
-bind('boiler-kW','boilerKW');
-bind('boiler-year','boilerYear');
-
-bind('flue-extra','flueExtra');
-bind('cond-extra','condExtra');
-bind('gas-extra','gasExtra');
-
-bind('cyl-size','cylSize');
-bind('cyl-make','cylMake');
-bind('cyl-extra','cylExtra');
-
-bind('rad-count','radCount');
-bind('rad-extra','radExtra');
-
-bind('flush-extra','flushExtra');
-bind('ctrl-extra','ctrlExtra');
-
-/* --------- W3W (manual, no API) --------- */
-$('#w3wTile').onclick = ()=> $('#w3wBack').classList.add('show');
-$('#w3wClose').onclick = ()=> $('#w3wBack').classList.remove('show');
+/* =========================
+   W3W Modal (manual only)
+   ========================= */
+$('#w3wClose').onclick = ()=> $('#w3wModal').classList.remove('show');
 $('#w3wGPS').onclick = ()=> navigator.geolocation?.getCurrentPosition(
   pos => { $('#w3wInput').value = `${pos.coords.latitude},${pos.coords.longitude}`; $('#w3wStatus').textContent='GPS captured'; },
   ()=> $('#w3wStatus').textContent='GPS unavailable'
 );
-
-function isThreeWords(s){
-  return /^[a-z]+\.([a-z]+)\.([a-z]+)$/i.test(s.trim().replace(/^\/+/,''));
-}
-function isLatLng(s){
-  return /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(s.trim());
-}
 $('#w3wValidate').onclick = ()=>{
   const s = ($('#w3wInput').value||'').trim();
-  if(isThreeWords(s)){ $('#w3wStatus').textContent = '✓ three words format'; return; }
-  if(isLatLng(s)){ $('#w3wStatus').textContent = '✓ lat,long format'; return; }
-  $('#w3wStatus').textContent = 'Format not recognised';
+  if (isThreeWords(s)) return $('#w3wStatus').textContent = '✓ three words format';
+  if (isLatLng(s))    return $('#w3wStatus').textContent = '✓ lat,long format';
+  $('#w3wStatus').textContent = 'Not recognised (will store raw)';
 };
 $('#w3wSave').onclick = ()=>{
   const s = ($('#w3wInput').value||'').trim().replace(/^\/+/,'');
-  if(!s){ $('#w3wStatus').textContent='Nothing entered'; return; }
-  if(isThreeWords(s)){
-    state.w3w = { words: s.toLowerCase(), coords: null };
-  }else if(isLatLng(s)){
-    const [lat,lng] = s.split(',').map(x=>+x.trim());
-    state.w3w = { words: null, coords: {lat,lng} };
-  }else{
-    // store raw, as-is (still useful for delivery notes)
-    state.w3w = { words: s, coords: null };
-  }
-  save();
-  $('#w3wView').textContent = state.w3w?.words ? `///${state.w3w.words}` :
-    state.w3w?.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : '—';
-  $('#w3wBack').classList.remove('show');
+  if (!s){ $('#w3wStatus').textContent='Nothing entered'; return; }
+  if (isThreeWords(s)) state.w3w = {words:s.toLowerCase()};
+  else if (isLatLng(s)){ const [lat,lng]=s.split(',').map(x=>+x.trim()); state.w3w = {coords:{lat,lng}}; }
+  else state.w3w = {raw:s};
+  // write back into the Delivery panel label if present
+  const dv = $('#main [data-section="Delivery notes"] #w3wView');
+  if (dv) dv.textContent = state.w3w.words ? `///${state.w3w.words}` :
+             (state.w3w.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : (state.w3w.raw||'—'));
+  save(); $('#w3wModal').classList.remove('show');
 };
 
-/* --------- Summary build --------- */
-$('#btnBuild').onclick = ()=>{ const txt = buildSummary(); $('#summaryBox').textContent = txt || 'No summary yet.'; };
-$('#btnCopy').onclick = ()=> navigator.clipboard.writeText($('#summaryBox').textContent||'').then(()=>alert('Copied'));
-$('#btnJSON').onclick = ()=> {
-  const payload = buildJSON();
-  const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+/* =========================
+   JSON BUILD
+   ========================= */
+function buildJSON(){
+  // Transform state into your depot JSON (one object with sections)
+  const out = { meta:{
+      generatedAt: new Date().toISOString(),
+      what3words: state.w3w || null
+    }, sections:{} };
+
+  for (const name of Object.keys(CONFIG)){
+    if (name==='Summary') continue;
+    const picks = listOf(state.selections[name]);
+    const notes = state.notes?.[name] || '';
+    const custom = state.custom?.[name] || [];
+    const extrasMap = state.extras?.[name] || {};
+    const extras = listOf(extrasMap);
+
+    // Join everything into a plain-English paragraph for this section
+    const parts = [];
+    if (picks.length) parts.push(picks.join('; '));
+    if (extras.length) parts.push(`Extras: ${extras.join('; ')}`);
+    if (custom.length) parts.push(custom.map(x=>`• ${x}`).join(' '));
+    if (notes) parts.push(notes);
+
+    out.sections[name] = parts.join(' ').trim();
+  }
+  return out;
+}
+
+/* =========================
+   Footer buttons
+   ========================= */
+function downloadJSON(){
+  const data = buildJSON();
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `depot-notes_${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
   a.click();
+}
+$('#btnBuild').onclick = ()=> {
+  const data = buildJSON();
+  // jump to Summary and show it
+  show('Summary');
+  const preview = $('#jsonPreview');
+  if (preview) preview.textContent = JSON.stringify(data, null, 2);
 };
+$('#btnCopy').onclick = ()=> navigator.clipboard.writeText(JSON.stringify(buildJSON(),null,2));
+$('#btnDownload').onclick = downloadJSON;
+$('#btnReset').onclick = ()=>{ localStorage.removeItem('notes-elite-sections'); location.reload(); };
 
-function sectionText(){
-  const p = state.picks, f = state.fields;
-
-  const propType = oneOf(p.propertyType);
-  const beds = oneOf(p.bedrooms);
-  const ins = listOf(p.insulation);
-
-  const existing = oneOf(p.existing);
-  const proposed = oneOf(p.proposed);
-
-  const boilerLoc = oneOf(p.boilerLoc);
-  const boilerAccess = listOf(p.boilerAccess);
-  const boilerCond = listOf(p.boilerCond);
-
-  const flue = oneOf(p.flue);
-  const flueNotes = listOf(p.flueNotes);
-
-  const condensate = oneOf(p.condensate);
-  const condNotes = listOf(p.condNotes);
-
-  const gasMeterLoc = oneOf(p.gasMeterLoc);
-  const gasPipe = oneOf(p.gasPipe);
-  const gasNotes = listOf(p.gasNotes);
-
-  const cylType = oneOf(p.cylType);
-  const cylSpace = listOf(p.cylSpace);
-  const cylNotes = listOf(p.cylNotes);
-
-  const rads = listOf(p.rads);
-  const radCount = f.radCount;
-
-  const flush = oneOf(p.flush);
-  const filter = oneOf(p.filter);
-
-  const ctrls = listOf(p.controls);
-  const elec = listOf(p.electrical);
-
-  const parking = oneOf(p.parking);
-  const del = listOf(p.delivery);
-  const w3 = state.w3w?.words ? `///${state.w3w.words}` : (state.w3w?.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : null);
-
-  const S = {};
-  S["Customer details"] = f.custNotes || '';
-  S["Property"] = sentence([
-    propType && `Property type: ${propType}.`,
-    beds && `Bedrooms: ${beds}.`,
-    ins.length ? `Insulation indicators: ${ins.join(', ')}.` : ''
-  ]);
-  S["Existing system"] = existing ? `Existing system: ${existing}.` : '';
-  S["New system"] = proposed ? `Proposed system: ${proposed}.` : '';
-  S["Boiler"] = sentence([
-    boilerLoc && `Boiler location: ${boilerLoc}.`,
-    f.boilerMake && `Boiler: ${f.boilerMake}${f.boilerKW?` (${f.boilerKW} kW)`:''}${f.boilerYear?`, installed ~${f.boilerYear}`:''}.`,
-    boilerAccess.length ? `Access: ${boilerAccess.join(', ')}.` : '',
-    boilerCond.length ? `Condition: ${boilerCond.join(', ')}.` : ''
-  ]);
-  S["Flue & terminal"] = sentence([
-    flue && `Flue: ${flue}.`,
-    f.flueExtra,
-    flueNotes.length ? `Notes: ${flueNotes.join(', ')}.` : ''
-  ]);
-  S["Condensate & waste"] = sentence([
-    condensate && `Condensate: ${condensate}.`,
-    condNotes.length ? `Notes: ${condNotes.join(', ')}.` : '',
-    f.condExtra
-  ]);
-  S["Gas & meter"] = sentence([
-    gasMeterLoc && `Meter: ${gasMeterLoc}.`,
-    gasPipe && `Pipework approx: ${gasPipe}.`,
-    gasNotes.length ? `Notes: ${gasNotes.join(', ')}.` : '',
-    f.gasExtra
-  ]);
-  S["Cylinders & HW"] = sentence([
-    cylType && `Cylinder: ${cylType}${f.cylSize?` ${f.cylSize} L`:''}${f.cylMake?` (${f.cylMake})`:''}.`,
-    cylSpace.length ? `Space: ${cylSpace.join(', ')}.` : '',
-    cylNotes.length ? `Notes: ${cylNotes.join(', ')}.` : '',
-    f.cylExtra
-  ]);
-  S["Radiators"] = sentence([
-    radCount && `Approx radiators: ${radCount}.`,
-    rads.length ? `Status: ${rads.join(', ')}.` : '',
-    f.radExtra
-  ]);
-  S["Flush & Filter"] = sentence([
-    flush && `Flush: ${flush}.`,
-    filter && `Filter: ${filter}.`,
-    f.flushExtra
-  ]);
-  S["Electrical & controls"] = sentence([
-    ctrls.length ? `Controls: ${ctrls.join(', ')}.` : '',
-    elec.length ? `Electrical: ${elec.join(', ')}.` : '',
-    f.ctrlExtra
-  ]);
-  S["Access & WAH"] = sentence([
-    has(p.access,"Working at height") && `Working at height planned.`,
-    has(p.access,"Scaffold required") && `Scaffold required.`,
-    has(p.access,"Loft access OK") && `Loft access acceptable (hatch/lighting).`
-  ]);
-  S["H&S / Asbestos"] = sentence([
-    has(p.hs,"Asbestos suspected") && `Potential asbestos present — survey/clearance required.`,
-    has(p.hs,"Permit to work") && `Permit to work arrangements required.`
-  ]);
-  S["Delivery & Parking"] = sentence([
-    parking && `Parking: ${parking}.`,
-    del.length ? `Delivery constraints: ${del.join(', ')}.` : '',
-    w3 && `Location (What3Words): ${w3}.`,
-    f.delNotes && f.delNotes
-  ]);
-  S["Observations"] = f.obs || '';
-  S["System recommendation"] = sentence([
-    f.sysHeadline && `Recommendation: ${f.sysHeadline}.`,
-    f.sysWhy && `Why: ${f.sysWhy}.`
-  ]);
-
-  return S;
-}
-
-function buildSummary(){
-  const S = sectionText();
-  return Object.entries(S)
-    .filter(([,v])=>v && v.trim())
-    .map(([k,v])=>`# ${k}\n${v.trim()}`)
-    .join('\n\n');
-}
-function buildJSON(){
-  return { meta:{ createdAt:new Date().toISOString(), w3w: state.w3w || null }, sections: sectionText() };
-}
-
-/* --------- reset --------- */
-$('#resetBtn').onclick = ()=>{ localStorage.removeItem('notes-elite-full'); location.reload(); };
-
-/* --------- boot: reapply actives/values --------- */
-(function boot(){
-  go(state.page||0);
-  // tiles
-  $$('.tile').forEach(el=>{
-    if(el.id==='w3wTile') return;
-    const g=el.dataset.g, v=el.dataset.v||el.querySelector('.t')?.textContent;
-    if(g && state.picks?.[g]?.[v]) el.classList.add('active');
-  });
-  // w3w view
-  $('#w3wView').textContent = state.w3w?.words ? `///${state.w3w.words}` :
-    state.w3w?.coords ? `${state.w3w.coords.lat},${state.w3w.coords.lng}` : '—';
-})();
+/* Show first panel content only (others hidden) */
+panels.forEach(p=> p.style.display = (p.dataset.section==='Needs' ? 'block':'none'));
 </script>
 </body>
 </html>
