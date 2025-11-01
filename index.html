@@ -1,370 +1,516 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>Notes Elite — Drill-down Tiles</title>
-<meta name="theme-color" content="#0b1016"/>
-<link rel="preload" as="image" href="https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg">
-<link rel="preload" as="image" href="https://martinbibb-cmd.github.io/Fast-survey/assets/branch.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Notes-Elite – Boiler Survey (with Auto Arse-Covers)</title>
 <style>
-:root{--bg:#0b1016;--panel:#0f1720;--ink:#e8f0f6;--muted:#cbd6e1;--line:#142533;--tile:#0b141f;--tile2:#0d1a26;--tileEdge:#20405a;--tileActive:#0f2218;--brand:#7cc4ff;--ok:#2ecc71;--warn:#ffc857;--err:#ff6a6a}
-*{box-sizing:border-box}
-html,body{height:100%}html{color-scheme:dark}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 ui-sans-serif,-apple-system,Segoe UI,Roboto,Arial;overflow:hidden}
-.app{height:100dvh;display:grid;grid-template-rows:64px auto 1fr 64px;background:
- url("https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg") right -40px top -40px/220px no-repeat,
- url("https://martinbibb-cmd.github.io/Fast-survey/assets/branch.svg") left -40px bottom -40px/220px no-repeat,
- linear-gradient(180deg,#0b1016,#0b1016 60%,#0a0f15)}
-.header{display:flex;gap:12px;align-items:center;padding:0 14px;background:#0c151f;border-bottom:1px solid var(--line)}
-.brand{display:flex;gap:10px;align-items:center;font-weight:700}.dot{width:10px;height:10px;border-radius:50%;background:var(--brand);box-shadow:0 0 10px var(--brand)}
-.toolbar{display:flex;gap:8px;align-items:center;padding:8px 10px;background:#0e1722;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.input{background:#0a121c;color:var(--ink);border:1px solid #1a2b3d;border-radius:10px;padding:8px 10px;min-width:240px}
-.btn{appearance:none;border:1px solid #21405a;background:#112233;color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
-.btn.primary{border-color:#1f4d83;background:#113459}.btn.good{border-color:#1c5f3a;background:#0f2a1c}.btn.warn{border-color:#735a1a;background:#2b2410}
-.status{font-size:12px}.ok{color:var(--ok)}.bad{color:var(--err)}.muted{opacity:.8}
-.stage{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:#0e1722}
-.crumb{font-size:13px}.crumb a{color:var(--ink);text-decoration:none;border-bottom:1px dotted #355}
-.spacer{flex:1}
-.content{overflow:auto}
-.grid{padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.tile{background:linear-gradient(180deg,var(--tile),var(--tile2));border:1px solid var(--tileEdge);border-radius:14px;min-height:120px;padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:8px}
-.tile.big{min-height:140px}
-.tile.active{border-color:var(--ok);background:var(--tileActive)}
-.tile .img{height:36px;background:url("https://martinbibb-cmd.github.io/Fast-survey/assets/leaf.svg") right/contain no-repeat;opacity:.9}
-.t{font-weight:700}
-.badges{display:flex;gap:6px;flex-wrap:wrap;font-size:11px;opacity:.9}
-.badge{border:1px solid #23445f;border-radius:8px;padding:2px 6px}
-.noteBox{padding:12px}
-textarea{width:100%;resize:vertical;min-height:84px;background:#0a121c;color:var(--ink);border:1px solid #1a2b3d;border-radius:10px;padding:10px 12px}
-.footer{display:flex;gap:8px;align-items:center;justify-content:center;padding:8px;background:#0c151f;border-top:1px solid var(--line)}
-.copybox{white-space:pre-wrap;background:#0a121c;border:1px solid #1a2b3d;border-radius:10px;padding:10px;max-height:32dvh;overflow:auto;margin:12px}
-.hidden{display:none}
-.w3wBtn{margin-left:8px}
+  :root{--bg:#0f1115;--fg:#e8eaf0;--muted:#9aa3b2;--tile:#171a21;--accent:#4da3ff;--good:#52d273}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:500 16px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial}
+  .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+  .nav{border-right:1px solid #222733;background:#0c0e13;position:sticky;top:0;height:100vh;overflow:auto}
+  .nav h1{font-size:18px;margin:12px 16px 4px;color:var(--muted)}
+  .nav button{all:unset;display:block;width:100%;padding:14px 16px;border-radius:6px;color:var(--fg);cursor:pointer}
+  .nav button:hover{background:#141823}
+  .nav .active{background:#141b28;box-shadow:inset 0 0 0 1px #1a2233}
+  .main{padding:18px;display:flex;flex-direction:column;gap:16px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .btn{all:unset;background:#1a2030;border:1px solid #26324a;padding:10px 12px;border-radius:8px;cursor:pointer}
+  .btn:hover{background:#21283b}
+  .btn.primary{background:#183559;border-color:#1f4880;color:#dbe9ff}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .tile{background:var(--tile);border:1px solid #22293a;border-radius:12px;padding:14px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;min-height:64px}
+  .tile input{margin-top:3px}
+  .tile .label{font-weight:600}
+  .tile small{display:block;color:var(--muted);margin-top:6px}
+  .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:#131823;border:1px solid #20283a;color:#c6d1e6}
+  .section-title{display:flex;justify-content:space-between;align-items:center}
+  .kicker{color:#9fb7ff;font-weight:700;text-transform:uppercase;font-size:12px;letter-spacing:.08em}
+  .panel{background:#0e121a;border:1px solid #20283a;border-radius:12px;padding:14px}
+  .two{display:grid;grid-template-columns:1fr 360px;gap:14px}
+  @media (max-width: 980px){.app{grid-template-columns:1fr}.nav{position:relative;height:auto}.two{grid-template-columns:1fr}}
+  code,pre{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .jsonbox{white-space:pre-wrap;word-break:break-word;background:#0b0e14;border:1px solid #20283a;border-radius:10px;padding:12px}
+  .success{color:var(--good)}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header"><div class="brand"><span class="dot"></span><span>Notes&nbsp;Elite</span></div><div id="hdr" class="muted"></div></div>
+  <aside class="nav" id="nav"></aside>
 
-  <div class="toolbar">
-    <span id="status" class="status">Ready</span>
-    <input id="url" class="input" placeholder="Options.txt URL (defaults to jsDelivr)"/>
-    <button class="btn" id="btnFetch">Fetch</button>
-    <input type="file" id="file" accept=".txt" class="input"/>
-    <button class="btn" id="btnPaste">Paste…</button>
-    <button class="btn primary" id="btnResetState">Reset selections</button>
-  </div>
-
-  <!-- Breadcrumb stage -->
-  <div class="stage">
-    <button class="btn" id="btnBack">← Back</button>
-    <div class="crumb" id="crumb">Sections</div>
-    <div class="spacer"></div>
-    <button class="btn hidden" id="btnW3W">What3Words…</button>
-  </div>
-
-  <!-- Main content (tiles) -->
-  <div class="content">
-    <div id="grid" class="grid"></div>
-    <div id="notesWrap" class="noteBox hidden">
-      <textarea id="notes" placeholder="Free-text notes for this section/category…"></textarea>
-      <div class="muted" style="margin-top:6px">Tip: Notes are saved per section; JSON merges picks + notes.</div>
-      <div id="jsonPreview" class="copybox hidden"></div>
+  <main class="main">
+    <div class="section-title">
+      <div>
+        <div class="kicker" id="kicker">Section</div>
+        <h2 id="title" style="margin:.25rem 0 0">Loading…</h2>
+      </div>
+      <div class="toolbar">
+        <button class="btn" onclick="openW3W()">+ what3words</button>
+        <button class="btn" onclick="promptManualW3W()">Type 3 words…</button>
+        <button class="btn" onclick="geoToW3W()">Use GPS → 3 words</button>
+        <button class="btn primary" onclick="exportJSON()">Export JSON</button>
+      </div>
     </div>
-  </div>
 
-  <!-- Footer -->
-  <div class="footer">
-    <button class="btn" id="btnHome">Sections</button>
-    <button class="btn" id="btnBuild">Build JSON</button>
-    <button class="btn primary" id="btnCopy">Copy JSON</button>
-    <button class="btn good" id="btnDownload">Download JSON</button>
-  </div>
-</div>
+    <div class="two">
+      <section class="panel">
+        <div id="tiles" class="grid"></div>
+      </section>
 
-<!-- Minimal W3W modal -->
-<div id="w3wModal" class="hidden">
-  <div class="copybox">
-    <div><b>What3Words</b></div>
-    <input id="w3wInput" class="input" placeholder="filled.count.soap  or  50.7341,-1.7763" style="width:100%;margin:8px 0"/>
-    <div style="display:flex;gap:8px;align-items:center">
-      <button class="btn" id="w3wValidate">Validate</button>
-      <button class="btn" id="w3wGPS">Use GPS</button>
-      <button class="btn primary" id="w3wSave">Save</button>
-      <button class="btn warn" id="w3wClose">Close</button>
-      <span id="w3wStatus" class="status">Idle</span>
+      <aside class="panel">
+        <div class="kicker">Depot Notes (Live Preview)</div>
+        <div id="preview"></div>
+        <hr style="border-color:#1c263a;margin:12px 0">
+        <div class="kicker">what3words</div>
+        <div id="w3wBox">No location added yet.</div>
+      </aside>
     </div>
-  </div>
+
+    <section class="panel">
+      <div class="kicker">JSON Export (copy box)</div>
+      <pre class="jsonbox" id="jsonBox">{}</pre>
+    </section>
+  </main>
 </div>
 
 <script>
-/* ---------- constants ---------- */
-const DEFAULT_URL="https://cdn.jsdelivr.net/gh/martinbibb-cmd/Depot-notes@main/Options.txt";
-const RAW_URL="https://raw.githubusercontent.com/martinbibb-cmd/Depot-notes/main/Options.txt";
-const GH_HTML="https://github.com/martinbibb-cmd/Depot-notes/blob/main/Options.txt";
+/* ----------------------------- DATA MODEL ------------------------------ */
+const SECTION_ORDER = [
+  "Needs",
+  "Working at heights",
+  "System characteristics",
+  "Components that require assistance",
+  "Restrictions to work",
+  "External hazards",
+  "Delivery notes",
+  "Office notes",
+  "New boiler and controls",
+  "Flue",
+  "Pipe work",
+  "Disruption",
+  "Customer actions"
+];
 
-const UI_SECTIONS=["Needs","Working at heights","System characteristics","Arse_cover_notes","Components that require assistance","Restrictions to work","External hazards","Delivery notes","Office notes","New boiler and controls","Flue","Pipe work","Disruption","Gas","Condensate","Boiler","Flush","Filter","Controls","Cylinder","Radiators","Customer actions"];
-
-const SINGLE=new Set(["Flue","Gas","Condensate","Boiler","Flush","Filter","Cylinder"]);
-const W3W_SECTION="Delivery notes";
-
-/* ---------- state ---------- */
-const $=s=>document.querySelector(s); const grid=$("#grid");
-const state=Object.assign({parsed:{},w3w:null,selections:{},notes:{}},load());
-function save(){localStorage.setItem("notes-elite-drill",JSON.stringify(state))}
-function load(){try{return JSON.parse(localStorage.getItem("notes-elite-drill")||"{}")}catch{return{}}}
-function norm(s){return (s||"").toLowerCase().replace(/[_-]/g," ").replace(/\s+/g," ").trim()}
-function is3w(s){return /^[a-z]+\.([a-z]+)\.([a-z]+)$/i.test((s||"").trim().replace(/^\/+/,''))}
-function isLL(s){return /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test((s||"").trim())}
-
-/* ---------- parse Options.txt (pipe format + |subgroup) ---------- */
-function parsePipe(txt){
-  const out={}; let cur=null, subgroup=null;
-  txt.replace(/\r\n/g,"\n").split("\n").forEach(raw=>{
-    const ln=raw.replace(/\s+$/,'');
-    const m=ln.match(/^\s*\[(.+?)\]\s*$/);
-    if(m){cur=m[1]; out[cur]=out[cur]||[]; subgroup=null; return}
-    if(!cur || !ln.trim()) return;
-    if(/^\s*\|[^|]/.test(ln)){subgroup=ln.replace(/^\s*\|/,'' ).trim(); return}
-    const parts=ln.split("|").map(x=>x.trim()).filter(x=>x!==""||x==="0");
-    if(parts.length>=2){
-      const code=parts[0], category=parts.length>=3?parts[1]:"", text=parts.length>=3?parts.slice(2).join(" | "):parts[1];
-      out[cur].push({code,category,text,subgroup});
-    }else{
-      out[cur].push({code:"",category:"",text:ln.trim(),subgroup});
-    }
-  });
-  return out;
-}
-
-/* ---------- drill stack ---------- */
-let stack=[{level:"root"}]; // root -> section -> group -> category -> items
-
-function setStage(text){ $("#crumb").innerHTML=text; }
-function push(node){ stack.push(node); render(); }
-function back(){ if(stack.length>1){ stack.pop(); render(); } }
-function toRoot(){ stack=[{level:"root"}]; render(); }
-
-/* ---------- selections helpers ---------- */
-function togglePick(section, key, single){
-  state.selections[section]=state.selections[section]||{};
-  if(single){ state.selections[section]={}; state.selections[section][key]=true; }
-  else{ state.selections[section][key]=!state.selections[section][key]; }
-  save();
-}
-function isPicked(section, key){ return !!(state.selections?.[section]?.[key]); }
-
-/* ---------- render ---------- */
-function render(){
-  $("#status").textContent="Ready";
-  $("#btnBack").disabled = (stack.length===1);
-  $("#btnW3W").classList.toggle("hidden", !(stack[1]?.section===W3W_SECTION && stack.at(-1).level==="items"));
-
-  // notes box shows when at items level
-  const atItems = stack.at(-1).level==="items";
-  $("#notesWrap").classList.toggle("hidden", !atItems);
-
-  const stageText = stack.map(n=>{
-    if(n.level==="root") return "Sections";
-    if(n.level==="section") return n.section;
-    if(n.level==="group") return n.group;
-    if(n.level==="category") return n.category;
-    if(n.level==="items") return "Items";
-  }).filter(Boolean).join(" › ");
-  setStage(stageText);
-
-  grid.innerHTML="";
-  const top = stack.at(-1);
-
-  if(top.level==="root"){
-    $("#hdr").textContent="Tap a section to begin";
-    UI_SECTIONS.forEach(sec=>{
-      const secItems = (state.parsed[sec]||[]);
-      const t=document.createElement("div"); t.className="tile big";
-      t.innerHTML=`<div class="img"></div><div class="t">${sec}</div><div class="muted">${secItems.length} options</div>`;
-      t.onclick=()=>push({level:"section", section:sec});
-      grid.appendChild(t);
-    });
-    $("#notesWrap").classList.add("hidden");
-    return;
-  }
-
-  if(top.level==="section"){
-    const sec=top.section; const items = state.parsed[sec]||[];
-    $("#hdr").textContent = `${sec} • ${items.length} options`;
-
-    // derive groups (subgroup field) — if none, derive from Category
-    const groups = Array.from(new Set(items.map(x=>x.subgroup).filter(Boolean)));
-    if(groups.length){
-      groups.forEach(g=>{
-        const count=items.filter(x=>x.subgroup===g).length;
-        const t=document.createElement("div"); t.className="tile big";
-        t.innerHTML=`<div class="img"></div><div class="t">${g}</div><div class="muted">${count} options</div>`;
-        t.onclick=()=>push({level:"group", section:sec, group:g});
-        grid.appendChild(t);
-      });
-    }else{
-      const cats = Array.from(new Set(items.map(x=>x.category).filter(Boolean)));
-      if(cats.length){
-        cats.forEach(c=>{
-          const count=items.filter(x=>x.category===c).length;
-          const t=document.createElement("div"); t.className="tile big";
-          t.innerHTML=`<div class="img"></div><div class="t">${c}</div><div class="muted">${count} options</div>`;
-          t.onclick=()=>push({level:"category", section:sec, category:c});
-          grid.appendChild(t);
-        });
-      }else{
-        // no groups or categories: go straight to items
-        push({level:"items", section:sec, items});
-      }
-    }
-    $("#notesWrap").classList.add("hidden");
-    return;
-  }
-
-  if(top.level==="group"){
-    const sec=top.section;
-    const items=(state.parsed[sec]||[]).filter(x=>x.subgroup===top.group);
-    // Next: categories inside this group (if present), otherwise items
-    const cats = Array.from(new Set(items.map(x=>x.category).filter(Boolean)));
-    if(cats.length){
-      cats.forEach(c=>{
-        const count=items.filter(x=>x.category===c).length;
-        const t=document.createElement("div"); t.className="tile big";
-        t.innerHTML=`<div class="img"></div><div class="t">${c}</div><div class="muted">${count} options</div>`;
-        t.onclick=()=>push({level:"category", section:sec, group:top.group, category:c});
-        grid.appendChild(t);
-      });
-      $("#notesWrap").classList.add("hidden");
-      return;
-    }else{
-      push({level:"items", section:sec, group:top.group, items});
-    }
-  }
-
-  if(top.level==="category"){
-    const sec=top.section;
-    const items=(state.parsed[sec]||[]).filter(x=>{
-      if(top.group && x.subgroup!==top.group) return false;
-      return (x.category===top.category);
-    });
-    push({level:"items", section:sec, group:top.group, category:top.category, items});
-    return;
-  }
-
-  if(top.level==="items"){
-    const sec=top.section; const single=SINGLE.has(sec);
-    const items = top.items || (state.parsed[sec]||[]).filter(x=>{
-      if(top.group && x.subgroup!==top.group) return false;
-      if(top.category && x.category!==top.category) return false;
-      return true;
-    });
-
-    items.forEach(rec=>{
-      const key=`${rec.code}|${rec.text}`;
-      const t=document.createElement("div"); t.className="tile";
-      if(isPicked(sec,key)) t.classList.add("active");
-      t.innerHTML=`<div class="img"></div>
-        <div class="t">${rec.text||rec.category||rec.code}</div>
-        <div class="badges">
-          ${rec.code?`<span class="badge">${rec.code}</span>`:""}
-          ${rec.category?`<span class="badge">${rec.category}</span>`:""}
-          ${rec.subgroup?`<span class="badge">${rec.subgroup}</span>`:""}
-          ${single?`<span class="badge">single</span>`:"<span class="badge">multi</span>`}
-        </div>`;
-      t.onclick=()=>{togglePick(sec,key,single); t.classList.toggle("active",isPicked(sec,key));};
-      grid.appendChild(t);
-    });
-
-    // notes area for this section
-    $("#notesWrap").classList.remove("hidden");
-    const noteKey = [sec, top.group, top.category].filter(Boolean).join(" / ");
-    $("#notes").value = state.notes[noteKey] || "";
-    $("#notes").oninput = e=>{ state.notes[noteKey]=e.target.value; save(); };
-
-    return;
-  }
-}
-
-/* ---------- JSON ---------- */
-function buildJSON(){
-  const out={meta:{generatedAt:new Date().toISOString(),sourceURL:$("#url").value||DEFAULT_URL,what3words:state.w3w||null},sections:{}};
-  UI_SECTIONS.forEach(sec=>{
-    const picks = Object.keys(state.selections[sec]||{}).filter(k=>state.selections[sec][k]).map(k=>{
-      const i=k.indexOf("|"); return {code:i>-1?k.slice(0,i):"", text:i>-1?k.slice(i+1):k}
-    });
-    const noteParts=[];
-    // merge any note keys that start with this section (section / group / category)
-    Object.entries(state.notes).forEach(([k,v])=>{ if(k.startsWith(sec) && v.trim()) noteParts.push(v.trim()); });
-    const text=[picks.length?("• "+picks.map(p=>(p.code?`${p.code} – `:"")+p.text).join("; ")): "", noteParts.join(" ")].filter(Boolean).join(" ");
-    out.sections[sec]={text,picks};
-  });
-  return out;
-}
-
-/* ---------- file/paste/fetch ---------- */
-async function fetchWithFallback(urls){
-  for(const u of urls){
-    try{
-      $("#status").textContent=`Fetching from ${new URL(u).hostname}…`;
-      const r=await fetch(u,{cache:"no-store"}); if(!r.ok) throw new Error(`HTTP ${r.status}`);
-      const ct=r.headers.get("content-type")||""; let txt=await r.text();
-      if(!/text\/|octet-stream/i.test(ct) && /<html/i.test(txt)){
-        const m=txt.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i) || txt.match(/<tbody[^>]*>([\s\S]*?)<\/tbody>/i);
-        if(m) txt=m[1].replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
-      }
-      $("#status").textContent=`Loaded from ${new URL(u).hostname}`; $("#status").className="status ok";
-      return txt;
-    }catch(e){ $("#status").textContent=`Failed ${u} (${e.message})`; $("#status").className="status bad"; }
-  }
-  throw new Error("All sources failed");
-}
-function applyOptionsText(txt){
-  state.parsed=parsePipe(txt); save();
-  // ensure every requested UI section exists even if empty
-  UI_SECTIONS.forEach(s=>{ state.parsed[s]=state.parsed[s]||[]; });
-  toRoot();
-}
-
-/* ---------- W3W ---------- */
-$("#btnW3W").onclick=()=>{ $("#w3wModal").classList.remove("hidden"); };
-$("#w3wClose").onclick=()=>{ $("#w3wModal").classList.add("hidden"); };
-$("#w3wGPS").onclick=()=>navigator.geolocation?.getCurrentPosition(
-  pos=>{$("#w3wInput").value=`${pos.coords.latitude},${pos.coords.longitude}`; $("#w3wStatus").textContent="GPS captured"},
-  ()=>$("#w3wStatus").textContent="GPS unavailable"
-);
-$("#w3wValidate").onclick=()=>{const v=$("#w3wInput").value||""; $("#w3wStatus").textContent=is3w(v)?"✓ three words":(isLL(v)?"✓ lat,long":"Unrecognised (stored raw)")};
-$("#w3wSave").onclick=()=>{const s=($("#w3wInput").value||"").trim().replace(/^\/+/, ''); if(!s){$("#w3wStatus").textContent="Nothing entered";return}
-  if(is3w(s)) state.w3w={words:s.toLowerCase()}; else if(isLL(s)){const [lat,lng]=s.split(',').map(x=>+x.trim()); state.w3w={coords:{lat,lng}};} else state.w3w={raw:s};
-  save(); $("#w3wModal").classList.add("hidden");
+const CATALOG = {
+  "Needs": [
+    {k:"Better water pressure"}, {k:"Faster hot water delivery"}, {k:"More usable space"},
+    {k:"Lower running costs"}, {k:"Easier controls"}, {k:"Quieter operation"},
+    {k:"Future-ready system"}
+  ],
+  "Working at heights": [
+    {k:"Ladder access required"},
+    {k:"Scaffold tower – standard"},
+    {k:"Scaffold tower – bridging"},
+    {k:"Cantilever scaffold"},
+    {k:"Roof access permit required"},
+    {k:"Loft access: boarded"},
+    {k:"Loft access: unboarded"},
+    {k:"MEWP required"},
+    {k:"Flat roof: specialist builder to make good"},
+    {k:"Ladder angle ~1:4 (≈75°); ~250 mm out per metre rise"},
+    {k:"Max ladder reach ≈6 m; >2 storeys or >45° roof → scaffold"},
+    {k:"Flat roof: edge protection or 2 m exclusion"},
+    {k:"Boiler weight ≤≈35 kg – two-person lift if needed"},
+    {k:"Fixed loft ladder & permanent lighting required"}
+  ],
+  "System characteristics": [
+    // EXISTING (detect old type)
+    {k:"Regular (open-vented) – existing"},
+    {k:"Regular (sealed kit) – existing"},
+    {k:"System boiler – open-vented HW (existing)"},
+    {k:"System boiler – unvented HW (existing)"},
+    {k:"Combi present (legacy)"},
+    {k:"Microbore pipework"},
+    {k:"Low system pressure"},
+    {k:"Y-plan"},{k:"S-plan"},{k:"Gravity primaries"},
+    // NEW (detect new type)
+    {k:"New: Combi"},
+    {k:"New: System + Unvented"},
+    {k:"New: System + Mixergy"},
+    {k:"New: Regular + open-vented HW"},
+    {k:"New: Regular + unvented HW"},
+    {k:"Controls compatibility: Hive/Hive Mini"},
+    {k:"Controls preference: Simple/manual"}
+  ],
+  "Components that require assistance": [
+    {k:"Cylinder – removal required"},{k:"Cylinder – replacement required"},
+    {k:"CWS tank – removal required"},{k:"Boiler – double-handed lift required"},
+    {k:"Heavy radiators – assistance required"}
+  ],
+  "Restrictions to work": [
+    {k:"No loft access"},{k:"Restricted clearance"},{k:"Parking limited / permit required"},
+    {k:"Working hours restricted"},{k:"Pets on site"},{k:"Vulnerable person present"},
+    {k:"Noise restrictions in place"},{k:"Septic tank – not suitable for condensate"},
+    {k:"Listed building – consent/permission required"},
+    {k:"Flats – management permission required"}
+  ],
+  "External hazards": [
+    {k:"Asbestos suspected"},{k:"Fragile roof tiles/material"},
+    {k:"Flood risk / standing water"},{k:"Wasps nesting"},{k:"Bees nesting"},
+    {k:"Poor lighting / no power"},{k:"Pet mess present"},{k:"Dogs present"},
+    {k:"Other potentially dangerous animals"},
+    {k:"Overhead electrical cables within 3 m"},
+    {k:"Customer to clear working areas; protect fragile roofs/greenhouses"}
+  ],
+  "Delivery notes": [
+    {k:"Preferred AM"},{k:"Preferred PM"},
+    {k:"Access: large vehicle suitable"},{k:"Access: large vehicle restricted"},
+    {k:"Deliver to garage"},{k:"Deliver to room within property"},
+    {k:"Call ahead on arrival"},{k:"Double-handed lift"},{k:"Stairs / no lift"},
+    {k:"what3words: (pending)", meta:"w3w"}
+  ],
+  "Office notes": [
+    {k:"Direct labour required"},
+    {k:"Specialist works: asbestos removal"},
+    {k:"Specialist works: specialist builder"},
+    {k:"Specialist works: scaffolding"},
+    {k:"Assistance: double-handed required"},
+    {k:"what3words: (pending)", meta:"w3w"}
+  ],
+  "New boiler and controls": [
+    {k:"Location: Kitchen – not in cupboard"},{k:"Location: Kitchen – within cupboard"},
+    {k:"Location: Utility room"},{k:"Location: Loft"},{k:"Location: Garage"},
+    {k:"Location: Airing cupboard"},{k:"Location: Other internal"},
+    {k:"Minor move to gain clearances"},
+    {k:"Boiler type: Regular / heat-only"},{k:"Boiler type: System"},{k:"Boiler type: Combi"},
+    {k:"User controls: Hive"},{k:"User controls: Hive Mini"},
+    {k:"User controls: Programmable thermostat"},
+    {k:"User controls: Programmer – 2 channel"},
+    {k:"User controls: Programmer – single channel"}
+  ],
+  "Flue": [
+    {k:"Make good: old balanced flue"},{k:"Make good: old fanned flue"},
+    {k:"Make good: old roof terminal"},{k:"Brick up old flue opening"},
+    {k:"New flue: same hole – minor change"},{k:"New flue: new hole – same wall"},
+    {k:"New flue: new hole – alternative wall"},
+    {k:"Orientation: horizontal"},{k:"Orientation: vertical"},
+    {k:"Seal brickwork to flue"},{k:"Vertical flashing kit"},
+    {k:"Flat roof flashing by specialist builder"},
+    {k:"Plume kit required"},{k:"Flue extension"},{k:"Terminal guard required"},
+    {k:"Orientation: front aspect"},{k:"Orientation: rear aspect"},
+    {k:"≥300 mm from any opening"},{k:"≥600 mm to facing surface/boundary"},
+    {k:"Voids: inspection hatches at every joint/change"},
+    {k:"Fall ~26–50 mm per metre back to boiler"},
+    {k:"High-rise: fire-rated flue only"},
+    {k:"Rear flue possible on many models (new hole likely)"},
+    {k:"Plume management 0.5–11.5 m; internal flue reduction per elbow"}
+  ],
+  "Pipe work": [
+    // Gas
+    {k:"Gas: upgrade to 22 mm"},{k:"Gas: tightness test pass required"},
+    {k:"Gas: internal reroute"},{k:"Gas: external reroute"},
+    {k:"Meter: U6 inside"},{k:"Meter: U6 outside"},
+    {k:"Route: simple/local"},{k:"Route: reuse existing"},{k:"Route: upsize sections"},
+    {k:"Route: complex (clipping / drilling / routing)"},
+    {k:"Replace meter tail (lead)"},{k:"Pressure drop risk over length"},
+    // Condensate
+    {k:"Condensate: internal waste – trap present"},
+    {k:"Condensate: external run 42 mm MI + insulation"},
+    {k:"Condensate: pump required"},
+    {k:"Condensate: soakaway / soil stack"},
+    {k:"Condensate: gradient correction"},
+    // Discharge / water
+    {k:"Safety discharge: PRV to outside"},
+    {k:"Safety discharge: visible tundish (unvented)"},
+    {k:"Water services: PRV / scale filter / stop tap access"}
+  ],
+  "Disruption": [
+    {k:"Cleaning: powerflush required"},
+    {k:"Cleaning: chemical clean & inhibit"},
+    {k:"Filter: magnetic (e.g., TF1 Omega)"},
+    {k:"Primaries: alterations required"},
+    {k:"Primaries: pipe size upgrade required"},
+    {k:"Radiators: replace"},{k:"Radiators: add"},
+    {k:"Fit TRVs / lockshields"},{k:"Balance system on completion"},
+    {k:"Replace towel rail"},{k:"Cap redundant pipework"},
+    {k:"Old / mixed radiator condition"},
+    {k:"Disruption: minimal"},{k:"Disruption: moderate – carpets lifted"},
+    {k:"Disruption: high – floors lifted"},
+    {k:"Prep: customer to clear areas/routes"},
+    {k:"Protection: dust protection required"}
+  ],
+  "Customer actions": [
+    {k:"Clear working areas"},{k:"Gain permission where required"},
+    {k:"Ensure animals are kept safely"},
+    {k:"Remove cupboard"},{k:"Rebuild cupboard"},
+    {k:"Remove old flue & weather seal"},
+    {k:"Supply specified items"}
+  ]
 };
 
-/* ---------- controls ---------- */
-$("#btnBack").onclick=back;
-$("#btnHome").onclick=toRoot;
-$("#btnBuild").onclick=()=>{const j=JSON.stringify(buildJSON(),null,2); $("#jsonPreview").classList.remove("hidden"); $("#jsonPreview").textContent=j;};
-$("#btnCopy").onclick=()=>navigator.clipboard.writeText(JSON.stringify(buildJSON(),null,2));
-$("#btnDownload").onclick=()=>{const blob=new Blob([JSON.stringify(buildJSON(),null,2)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`depot-notes_${new Date().toISOString().replace(/[:.]/g,'-')}.json`; a.click();};
-$("#btnResetState").onclick=()=>{localStorage.removeItem("notes-elite-drill"); location.reload();};
+const MAP_TO_DEPOT = [
+  {bucket:"General", keys:["Needs","System characteristics"]},
+  {bucket:"Working at heights", keys:["Working at heights"]},
+  {bucket:"External hazards", keys:["External hazards"]},
+  {bucket:"Delivery notes", keys:["Delivery notes"]},
+  {bucket:"Office notes", keys:["Office notes"]},
+  {bucket:"New boiler and controls", keys:["New boiler and controls"]},
+  {bucket:"Flue", keys:["Flue"]},
+  {bucket:"Pipe work", keys:["Pipe work"]},
+  {bucket:"Disruption", keys:["Disruption"]},
+  {bucket:"Customer actions", keys:["Customer actions"]},
+  {bucket:"Assistance", keys:["Components that require assistance"]},
+  {bucket:"Restrictions to work", keys:["Restrictions to work"]},
+  // Auto-generated bucket for arse-covers (added by rules)
+  {bucket:"Arse-cover notes (auto)", keys:[]}
+];
 
-$("#btnFetch").onclick=async()=>{try{const txt=await fetchWithFallback([$("#url").value||DEFAULT_URL, RAW_URL, GH_HTML]); applyOptionsText(txt);}catch(e){$("#status").textContent=e.message; $("#status").className="status bad";}};
-$("#file").onchange=async e=>{const f=e.target.files[0]; if(!f) return; const txt=await f.text(); $("#status").textContent=`Loaded ${f.name}`; $("#status").className="status ok"; applyOptionsText(txt);};
-$("#btnPaste").onclick=()=>{const t=prompt("Paste Options.txt content:"); if(t){$("#status").textContent="Loaded from paste"; $("#status").className="status ok"; applyOptionsText(t);}};
+/* ------------------------------ STATE ---------------------------------- */
+const state = {
+  selections: Object.fromEntries(Object.keys(CATALOG).map(s => [s, new Set()])),
+  w3w: null
+};
 
-/* ---------- boot ---------- */
-(function boot(){
-  $("#url").value = $("#url").value || DEFAULT_URL;
-  // If we already have parsed data from a previous run, render immediately; otherwise fetch
-  if(state.parsed && Object.keys(state.parsed).length){ toRoot(); }
-  else { fetchWithFallback([DEFAULT_URL, RAW_URL, GH_HTML]).then(applyOptionsText).catch(()=>toRoot()); }
-})();
+/* ------------------------------ HELPERS -------------------------------- */
+const hasSel = (sec, contains)=>[...state.selections[sec]].some(x=>x.includes(contains));
+const anySel = (sec)=>state.selections[sec].size>0;
+const inAny = (keys, text)=>keys.some(k=>hasSel(k,text));
 
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('SW registration failed',err));
-  });
+function inferSystemChange(){
+  const oldOpen =
+    hasSel("System characteristics","Regular (open-vented)") ||
+    hasSel("System characteristics","open-vented HW (existing)");
+  const oldUnvented = hasSel("System characteristics","unvented HW (existing)");
+  const oldCombi = hasSel("System characteristics","Combi present (legacy)");
+
+  const newCombi = hasSel("System characteristics","New: Combi") ||
+                   hasSel("New boiler and controls","Boiler type: Combi");
+  const newSysUnv = hasSel("System characteristics","New: System + Unvented") ||
+                    hasSel("System characteristics","New: System + Mixergy");
+  const newRegUnv = hasSel("System characteristics","New: Regular + unvented HW");
+  const newOpen = hasSel("System characteristics","New: Regular + open-vented HW");
+  const isSealedNew = newCombi || newSysUnv || newRegUnv;
+
+  return {oldOpen, oldUnvented, oldCombi, newCombi, newSysUnv, newRegUnv, newOpen, isSealedNew};
 }
+
+/* ----------------------- AUTO ARSE-COVER RULES ------------------------- */
+/** Each rule returns an array of note strings when its predicate is true. */
+const ARSE_RULES = [
+  // Sealing risks when moving from open-vented → sealed (combi/system/unvented)
+  {
+    when: s => inferSystemChange().oldOpen && inferSystemChange().isSealedNew,
+    notes: [
+      "Sealing an old system may expose hidden leaks",
+      "Existing radiators/valves may leak once pressurised",
+      "Old vented pipework and joints were not designed for pressure",
+      "Pressure drops after installation may indicate existing weeps/hidden leaks",
+      "Customer advised to monitor pressure during the initial days of use"
+    ]
+  },
+  // Combi expectations when moving to / keeping a combi
+  {
+    when: s => inferSystemChange().newCombi,
+    notes: [
+      "Combination boilers supply one outlet at a time — flow reduces with multiple use",
+      "Hot water performance is limited by incoming mains pressure and flow",
+      "Shower pumps/power showers are incompatible with combis and must be removed",
+      "Hot water temperature varies slightly with flow rate"
+    ]
+  },
+  // Unvented cylinder compliance (if choosing system+unvented or regular+unvented)
+  {
+    when: s => inferSystemChange().newSysUnv || inferSystemChange().newRegUnv,
+    notes: [
+      "Unvented cylinder discharge tested at installation only; G3 compliance applies",
+      "T&P relief via tundish to a safe termination is required",
+      "Unvented/Mixergy cylinders require periodic servicing for safety"
+    ]
+  },
+  // Condensate disclaimers (any condensing boiler or any condensate work)
+  {
+    when: s => inAny(["Pipe work","New boiler and controls","Flue"],"Condensate") || true, // all modern boilers condense
+    notes: [
+      "External condensate requires insulation and correct fall; freezing risk remains",
+      "Where suitable drainage exists, external soakaway or soil stack connection is provided",
+      "Customer is responsible for keeping the condensate route clear and free-flowing"
+    ]
+  },
+  // Controls / connectivity when Hive or smart mentioned
+  {
+    when: s => inAny(["System characteristics","New boiler and controls"],"Hive") || inAny(["New boiler and controls"],"controls"),
+    notes: [
+      "Controls installed in line with manufacturer’s instructions",
+      "Hive can operate without Wi-Fi; only the app requires router power/connection",
+      "No responsibility for internet connectivity or app integration issues",
+      "Room thermostat location based on best judgement at survey"
+    ]
+  },
+  // Flue/making-good when new holes or making good selected
+  {
+    when: s => inAny(["Flue"],"new hole") || inAny(["Flue"],"Make good") || inAny(["Flue"],"Brick up"),
+    notes: [
+      "Flue termination clearances checked at time of install; future obstructions are not covered",
+      "Brickwork/render made good to a reasonable standard (not decorative)",
+      "Flue sealing/flashings are weatherproof only (not decorative)"
+    ]
+  },
+  // Access / WAH
+  {
+    when: s => anySel("Working at heights"),
+    notes: [
+      "Working-at-height precautions apply — scaffold/tower/MEWP may be required",
+      "No work above safe height without suitable equipment",
+      "Permanent access (e.g., fixed loft ladder and lighting) is the customer’s responsibility"
+    ]
+  },
+  // Disruption/customer responsibilities when conversions or major works indicated
+  {
+    when: s => inferSystemChange().newCombi || inferSystemChange().newSysUnv || anySel("Disruption"),
+    notes: [
+      "Noise, dust and disruption are unavoidable during installation",
+      "Water and heating may be temporarily unavailable during works",
+      "Customer responsible for redecorating or boxing-in after completion",
+      "Customer to clear working areas and ensure safe access"
+    ]
+  },
+  // Always include general compliance
+  {
+    when: s => true,
+    notes: [
+      "All works carried out to Gas Safe and Building Regulations applicable at the time of install",
+      "Manufacturer warranty is subject to annual service",
+      "No liability for pre-existing faults or unrelated plumbing issues",
+      "Installation performance depends on the existing system design and pipework"
+    ]
+  }
+];
+
+/* ------------------------------ UI BUILD -------------------------------- */
+const nav = document.getElementById('nav');
+const tilesEl = document.getElementById('tiles');
+const titleEl = document.getElementById('title');
+const kickerEl = document.getElementById('kicker');
+const previewEl = document.getElementById('preview');
+const jsonBox = document.getElementById('jsonBox');
+const w3wBox = document.getElementById('w3wBox');
+
+SECTION_ORDER.forEach((sec, i)=>{
+  const btn = document.createElement('button');
+  btn.textContent = sec;
+  btn.onclick = ()=>showSection(sec, btn);
+  if(i===0) btn.classList.add('active');
+  nav.append(btn);
+});
+const firstBtn = nav.querySelector('button'); showSection(firstBtn.textContent, firstBtn);
+
+function showSection(section, btn){
+  nav.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  titleEl.textContent = section;
+  kickerEl.textContent = "Select all that apply";
+  tilesEl.innerHTML = "";
+  CATALOG[section].forEach(item=>{
+    const tile = document.createElement('label');
+    tile.className = 'tile';
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = state.selections[section].has(item.k);
+    cb.onchange = (e)=>{
+      if(e.target.checked) state.selections[section].add(item.k);
+      else state.selections[section].delete(item.k);
+      updatePreview();
+    };
+
+    const text = document.createElement('div');
+    text.innerHTML = `<div class="label">${item.k}</div>${item.d?`<small>${item.d}</small>`:""}`;
+
+    tile.append(cb, text);
+    tilesEl.append(tile);
+  });
+  updatePreview();
+}
+
+/* ----------------------- PREVIEW / MAPPING / EXPORT -------------------- */
+function buildDepotBuckets(){
+  const out = {};
+  MAP_TO_DEPOT.forEach(map=>{
+    if(map.bucket==="Arse-cover notes (auto)") return; // fill later
+    const lines = [];
+    map.keys.forEach(sec=>{
+      state.selections[sec].forEach(k=>lines.push("• "+k));
+    });
+    if((map.bucket==="Delivery notes" || map.bucket==="Office notes") && state.w3w){
+      lines.push("• what3words: "+state.w3w);
+    }
+    if(lines.length) out[map.bucket]=lines;
+  });
+
+  // AUTO ARSE-COVERS
+  const auto = new Set();
+  ARSE_RULES.forEach(rule=>{
+    if(rule.when(state)){
+      rule.notes.forEach(n=>auto.add("• "+n));
+    }
+  });
+  if(auto.size) out["Arse-cover notes (auto)"] = [...auto];
+
+  return out;
+}
+
+function updatePreview(){
+  const out = buildDepotBuckets();
+  previewEl.innerHTML = Object.keys(out).map(bucket=>{
+    return `<p class="pill">${bucket}</p><ul>${out[bucket].map(li=>`<li>${li}</li>`).join("")}</ul>`;
+  }).join("") || "<em>No selections yet.</em>";
+
+  const exportObj = {
+    generated_at: new Date().toISOString(),
+    what3words: state.w3w,
+    depot_notes: out
+  };
+  jsonBox.textContent = JSON.stringify(exportObj, null, 2);
+}
+
+/* -------------------------- WHAT3WORDS HOOKS ---------------------------- */
+function openW3W(){
+  const hint = encodeURIComponent(state.w3w ?? "");
+  const url = `shortcuts://run-shortcut?name=Add%20what3words&input=text&text=${hint}`;
+  window.location.href = url;
+}
+function promptManualW3W(){
+  const s = prompt("Type what3words (e.g. index.home.raft):", state.w3w ?? "");
+  if(!s) return;
+  state.w3w = s.trim();
+  w3wBox.innerHTML = `<span class="success">✓</span> ${state.w3w}`;
+  updatePreview();
+}
+async function geoToW3W(){
+  if(!navigator.geolocation){ alert("Geolocation not available"); return; }
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const {latitude:lat, longitude:lng} = pos.coords;
+    try{
+      const url = `https://w3w-proxy.martinbibb.worker.dev/convert-to-3wa?coordinates=${lat},${lng}`;
+      const r = await fetch(url);
+      if(!r.ok) throw new Error("Proxy error");
+      const data = await r.json();
+      const words = data.words || data.threeWords || data.words3 || data.w3w || null;
+      if(!words) throw new Error("Unexpected response from proxy");
+      state.w3w = words;
+      w3wBox.innerHTML = `<span class="success">✓</span> ${state.w3w} <small>(${lat.toFixed(5)}, ${lng.toFixed(5)})</small>`;
+      updatePreview();
+    }catch(e){
+      console.warn(e);
+      alert("Couldn’t convert location via proxy. Enter manually.");
+      promptManualW3W();
+    }
+  }, err=>alert("Location error: "+err.message), {enableHighAccuracy:true, timeout:12000});
+}
+
+/* ---------------------------- EXPORT (FILE) ----------------------------- */
+function exportJSON(){
+  const data = jsonBox.textContent;
+  const blob = new Blob([data], {type:"application/json"});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `depot-notes_${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* Init once. */
+updatePreview();
 </script>
 </body>
 </html>
