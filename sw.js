@@ -1,4 +1,4 @@
-const CACHE_NAME = 'notes-elite-v3';
+const CACHE_NAME = 'notes-elite-v4';
 const OFFLINE_URLS = [
   './',
   './index.html',
