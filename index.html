@@ -2,660 +2,462 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Notes-Elite – Boiler Survey (with Auto Arse-Covers)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Depot Notes-Elite (PWA mock)</title>
+<meta name="theme-color" content="#0a67ff"/>
+<link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;Depot Notes-Elite&quot;,&quot;short_name&quot;:&quot;Notes-Elite&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#ffffff&quot;,&quot;theme_color&quot;:&quot;#0a67ff&quot;}">
 <style>
-  :root{--bg:#0f1115;--fg:#e8eaf0;--muted:#9aa3b2;--tile:#171a21;--accent:#4da3ff;--good:#52d273}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:500 16px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial}
-  .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
-  .nav{border-right:1px solid #222733;background:#0c0e13;position:sticky;top:0;height:100vh;overflow:auto}
-  .nav h1{font-size:18px;margin:12px 16px 4px;color:var(--muted)}
-  .nav button{all:unset;display:block;width:100%;padding:14px 16px;border-radius:6px;color:var(--fg);cursor:pointer}
-  .nav button:hover{background:#141823}
-  .nav .active{background:#141b28;box-shadow:inset 0 0 0 1px #1a2233}
-  .main{padding:18px;display:flex;flex-direction:column;gap:16px}
-  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-  .btn{all:unset;background:#1a2030;border:1px solid #26324a;padding:10px 12px;border-radius:8px;cursor:pointer}
-  .btn:hover{background:#21283b}
-  .btn.primary{background:#183559;border-color:#1f4880;color:#dbe9ff}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-  .tile{background:var(--tile);border:1px solid #22293a;border-radius:12px;padding:14px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;min-height:64px}
-  .tile input{margin-top:3px}
-  .tile .label{font-weight:600}
-  .tile small{display:block;color:var(--muted);margin-top:6px}
-  .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:#131823;border:1px solid #20283a;color:#c6d1e6}
-  .section-title{display:flex;justify-content:space-between;align-items:center}
-  .kicker{color:#9fb7ff;font-weight:700;text-transform:uppercase;font-size:12px;letter-spacing:.08em}
-  .panel{background:#0e121a;border:1px solid #20283a;border-radius:12px;padding:14px}
-  .two{display:grid;grid-template-columns:1fr 360px;gap:14px}
-  @media (max-width: 980px){.app{grid-template-columns:1fr}.nav{position:relative;height:auto}.two{grid-template-columns:1fr}}
-  code,pre{font-family:ui-monospace,Menlo,Consolas,monospace}
-  .jsonbox{white-space:pre-wrap;word-break:break-word;background:#0b0e14;border:1px solid #20283a;border-radius:10px;padding:12px}
-  .success{color:var(--good)}
+:root{
+  --bg:#ffffff;
+  --ink:#0b3a76;
+  --brand:#0a67ff;
+  --brand-20:#0a67ff33;
+  --line:#cfd8e3;
+  --tile:#f8fafc;
+  --ok:#12b886;
+  --muted:#6b7280;
+  --radius:16px;
+  --shadow:0 6px 24px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  color:var(--ink); background:var(--bg);
+}
+.app{
+  max-width: 1100px; margin:0 auto; padding:24px 24px 72px;
+  background:
+    radial-gradient(#e5e7eb 1px, transparent 1px) 0 0/18px 18px;
+  min-height:100dvh;
+}
+h1{font-size:40px; margin:8px 0 16px; text-align:center; letter-spacing:.2px}
+h2{font-size:28px; margin:8px 0 12px; text-align:center}
+.grid{display:grid; gap:24px}
+.tiles{
+  display:grid; grid-template-columns: repeat(3, minmax(200px,1fr)); gap:24px; justify-items:stretch;
+}
+.tile{
+  background:var(--tile); border:2px solid var(--brand-20); border-radius: var(--radius);
+  padding:28px; text-align:center; font-weight:700; font-size:28px; color:#0a67ff;
+  cursor:pointer; transition: transform .06s ease, box-shadow .1s ease, border-color .1s ease;
+  box-shadow:var(--shadow);
+}
+.tile:hover{ transform: translateY(-2px); }
+.header{
+  display:flex; gap:12px; align-items:center; justify-content:flex-start; margin:8px 0 16px;
+}
+.btn{
+  appearance:none; border:0; background:var(--brand); color:white; border-radius:999px;
+  padding:10px 16px; font-weight:700; cursor:pointer; box-shadow: var(--shadow);
+}
+.btn.ghost{ background:transparent; color:var(--brand); border:2px solid var(--brand-20)}
+.btn.small{ padding:8px 12px; font-size:14px}
+.row{display:flex; gap:24px; align-items:flex-start}
+.card{
+  background:white; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+  padding:16px;
+}
+.list{display:grid; gap:16px}
+.item{
+  display:grid; grid-template-columns: 36px 1fr 240px; gap:16px; align-items:center;
+}
+.item .icon{width:28px; height:28px; opacity:.9}
+.slider{width:100%}
+.noteBox{min-height:260px; width:100%; resize:vertical; padding:12px; border-radius:12px; border:1px solid var(--line)}
+.help{color:var(--muted); font-size:13px}
+.section{
+  display:none;
+}
+.section.active{display:block}
+.progress{
+  height:8px; background:#e5e7eb; border-radius:999px; overflow:hidden; margin:24px 0 8px;
+}
+.progress > div{height:100%; width:0%; background:var(--brand); transition:width .2s}
+.footerActions{
+  position: fixed; right:18px; bottom:18px; display:flex; gap:10px; z-index:9;
+}
+.iconBtn{
+  background:white; border:1px solid var(--line); border-radius:12px; padding:10px 12px; cursor:pointer; box-shadow:var(--shadow)
+}
+.iconBtn:hover{border-color:#9aa4b2}
+.kv{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.chips{display:flex; flex-wrap:wrap; gap:10px; margin-top:8px}
+.chip{
+  padding:8px 12px; border-radius:999px; border:1px solid var(--line); background:white; cursor:pointer; font-weight:600; font-size:14px;
+}
+.chip.active{ border-color:var(--brand); box-shadow:0 0 0 2px var(--brand-20) inset; color:var(--brand)}
+.sys-tiles{display:grid; grid-template-columns: repeat(3, 1fr); gap:24px}
+.sys-tiles .tile{font-size:18px; padding:12px}
+.sysimg{
+  display:flex; align-items:center; justify-content:center; background:white; border:1px dashed var(--line);
+  height:160px; border-radius:12px; font-size:13px; color:var(--muted)
+}
+.badge{background:#eef2ff; color:#2f5aff; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700}
+.sep{height:1px; background:#e5e7eb; margin:10px 0}
+@media (max-width:900px){
+  .tiles{grid-template-columns: 1fr}
+  .item{grid-template-columns: 36px 1fr; grid-template-rows: auto auto}
+  .item .slider{grid-column: 1 / -1}
+  .sys-tiles{grid-template-columns: 1fr}
+}
 </style>
 </head>
 <body>
 <div class="app">
-  <aside class="nav" id="nav"></aside>
+  <h1>Depot notes</h1>
 
-  <main class="main">
-    <div class="section-title">
-      <div>
-        <div class="kicker" id="kicker">Section</div>
-        <h2 id="title" style="margin:.25rem 0 0">Loading…</h2>
+  <!-- HOME -->
+  <section id="home" class="section active">
+    <div class="tiles">
+      <div class="tile" data-go="customer">Customer</div>
+      <div class="tile" data-go="system">System</div>
+      <div class="tile" data-go="safety">Safety</div>
+    </div>
+
+    <div class="progress" aria-label="progress"><div id="progressBar"></div></div>
+    <div class="help">Tip: You can export/import JSON from the bottom-right at any time. Autosaves locally.</div>
+  </section>
+
+  <!-- CUSTOMER -->
+  <section id="customer" class="section">
+    <div class="header">
+      <button class="btn small" data-go="home">Home</button>
+      <span class="badge">Customer priorities</span>
+    </div>
+    <h2>Customer</h2>
+
+    <div class="row">
+      <div class="card" style="flex:1">
+        <div class="list" id="customerList"><!-- injected --></div>
       </div>
-      <div class="toolbar">
-        <button class="btn" onclick="openW3W()">+ what3words</button>
-        <button class="btn" onclick="promptManualW3W()">Type 3 words…</button>
-        <button class="btn" onclick="geoToW3W()">Use GPS → 3 words</button>
-        <button class="btn primary" onclick="exportJSON()">Export JSON</button>
+      <div class="card" style="width:360px">
+        <div class="kv"><strong>Notes</strong><span class="help">e.g. Future plans</span></div>
+        <textarea id="customerNotes" class="noteBox" placeholder="Type notes…"></textarea>
+        <div class="sep"></div>
+        <label class="help"><input type="checkbox" id="customerBrandLoyalty"> Customer prefers specific brand</label>
+      </div>
+    </div>
+  </section>
+
+  <!-- SYSTEM -->
+  <section id="system" class="section">
+    <div class="header">
+      <button class="btn small" data-go="home">Home</button>
+      <span class="badge">System mapping</span>
+    </div>
+    <h2>System</h2>
+
+    <div class="card">
+      <h3 style="margin:0 0 8px">Current</h3>
+      <div class="sys-tiles" id="sysCurrent">
+        <!-- image tiles -->
       </div>
     </div>
 
-    <div class="two">
-      <section class="panel">
-        <div id="tiles" class="grid"></div>
-      </section>
-
-      <aside class="panel">
-        <div class="kicker">Depot Notes (Live Preview)</div>
-        <div id="preview"></div>
-        <hr style="border-color:#1c263a;margin:12px 0">
-        <div class="kicker">what3words</div>
-        <div id="w3wBox">No location added yet.</div>
-      </aside>
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin:0 0 8px">New</h3>
+      <div class="sys-tiles" id="sysNew">
+        <!-- image tiles -->
+      </div>
     </div>
 
-    <section class="panel">
-      <div class="kicker">JSON Export (copy box)</div>
-      <pre class="jsonbox" id="jsonBox">{}</pre>
-    </section>
-  </main>
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin:0 0 8px">Plumbing & fuel (stubs)</h3>
+      <div class="chips" id="stubs">
+        <span class="chip" data-stub="flue">Flue</span>
+        <span class="chip" data-stub="condensate">Condensate</span>
+        <span class="chip" data-stub="gas">Gas</span>
+        <span class="chip" data-stub="controls">Controls</span>
+      </div>
+      <div class="help">These are placeholders; selecting toggles a boolean and reserves a section in JSON for your next build.</div>
+    </div>
+  </section>
+
+  <!-- SAFETY -->
+  <section id="safety" class="section">
+    <div class="header">
+      <button class="btn small" data-go="home">Home</button>
+      <span class="badge">Safety</span>
+    </div>
+    <h2>Safety</h2>
+
+    <div class="tiles" style="grid-template-columns: repeat(3,minmax(220px,1fr))">
+      <div class="tile" data-safety="workingAtHeights">Working at heights</div>
+      <div class="tile" data-safety="environmental">Environmental</div>
+      <div class="tile" data-safety="electrical">Electrical</div>
+      <div class="tile" data-safety="animals">Animals</div>
+      <div class="tile" data-safety="customer">Customer</div>
+      <div class="tile" data-safety="other">Other</div>
+    </div>
+
+    <div id="safetyPanel" class="card" style="margin-top:20px; display:none">
+      <div class="kv">
+        <strong id="safetyTitle">Category</strong>
+        <span class="help">Tap to toggle. Everything is saved automatically.</span>
+      </div>
+      <div class="chips" id="safetyChips"></div>
+      <div class="sep"></div>
+      <textarea id="safetyNotes" class="noteBox" placeholder="Category notes…"></textarea>
+    </div>
+  </section>
+
+  <!-- Floating actions -->
+  <div class="footerActions">
+    <button id="btnImport" class="iconBtn" title="Import JSON">📥 Import</button>
+    <button id="btnExport" class="iconBtn" title="Export JSON">📤 Export</button>
+  </div>
+  <input type="file" id="fileInput" accept="application/json" hidden />
 </div>
 
 <script>
-/* ------------------------------- STATE --------------------------------- */
-const nav = document.getElementById('nav');
-const tilesEl = document.getElementById('tiles');
-const titleEl = document.getElementById('title');
-const kickerEl = document.getElementById('kicker');
-const previewEl = document.getElementById('preview');
-const jsonBox = document.getElementById('jsonBox');
-const w3wBox = document.getElementById('w3wBox');
-
-const state = {
-  selections: {},
-  w3w: null
+/* ------------------ State & Schema ------------------ */
+const DEFAULT = {
+  meta:{ app:"Depot Notes-Elite PWA", version:"0.1.0", updated:new Date().toISOString() },
+  customer:{
+    priorities:{
+      disruption:50, ongoingCost:50, immediateCost:50, waterPressure:50,
+      multipleTaps:50, futurePlans:50, brandLoyaltyLevel:50, afterCare:50
+    },
+    notes:"", brandLoyalty:false
+  },
+  system:{
+    current:null, // 'regular' | 'system' | 'combi' | 'warmAir' | 'none' | 'storageCombi' | 'ufh'
+    next:null,    // same enum as above
+    stubs:{ flue:false, condensate:false, gas:false, controls:false }
+  },
+  safety:{
+    workingAtHeights:{ items:[], notes:"" },
+    environmental:{ items:[], notes:"" },
+    electrical:{ items:[], notes:"" },
+    animals:{ items:[], notes:"" },
+    customer:{ items:[], notes:"" },
+    other:{ items:[], notes:"" }
+  }
 };
+let state = load() || structuredClone(DEFAULT);
 
-let sections = [];
-let sectionMap = new Map();
-let itemIndex = new Map();
-let autoNotes = {__always: []};
-let w3wConfig = {writeTo: [], mirrorDelivery: false};
+/* ------------------ Router ------------------ */
+const screens = Array.from(document.querySelectorAll('.section'));
+document.querySelectorAll('[data-go]').forEach(el=>{
+  el.addEventListener('click', ()=>go(el.dataset.go));
+});
+function go(id){
+  screens.forEach(s=>s.classList.toggle('active', s.id===id));
+  window.scrollTo({top:0, behavior:'instant'});
+  save();
+  renderProgress();
+}
+function renderProgress(){
+  // naive completion: 8 sliders + current + new + any safety tick
+  let total=10, score=0;
+  const p = state.customer.priorities;
+  score += Object.values(p).filter(v=>typeof v==='number' && v!==50).length; // changed sliders
+  if(state.system.current) score++;
+  if(state.system.next) score++;
+  const anySafety = Object.values(state.safety).some(v=>v.items?.length);
+  if(anySafety) score++;
+  document.getElementById('progressBar').style.width = Math.min(100, (score/total)*100)+'%';
+}
+renderProgress();
 
-/* ------------------------------ INIT LOAD ------------------------------- */
-init();
+/* ------------------ Customer ------------------ */
+const customerFields = [
+  {key:'disruption', label:'Disruption', icon:'⚠️'},
+  {key:'ongoingCost', label:'On going cost', icon:'💷'},
+  {key:'immediateCost', label:'Immediate cost', icon:'💸'},
+  {key:'waterPressure', label:'Water pressure', icon:'🌊'},
+  {key:'multipleTaps', label:'Multiple taps', icon:'🚿'},
+  {key:'futurePlans', label:'Future plans', icon:'🧭'},
+  {key:'brandLoyaltyLevel', label:'Brand loyalty', icon:'🎯'},
+  {key:'afterCare', label:'After care', icon:'🛠️'},
+];
+const clist = document.getElementById('customerList');
+function renderCustomer(){
+  clist.innerHTML='';
+  customerFields.forEach(f=>{
+    const row=document.createElement('div'); row.className='item';
+    row.innerHTML = `
+      <div class="icon" aria-hidden="true">${f.icon}</div>
+      <div>${f.label}</div>
+      <input type="range" min="0" max="100" step="1" class="slider" value="${state.customer.priorities[f.key]}" data-key="${f.key}">
+    `;
+    clist.appendChild(row);
+  });
+  document.getElementById('customerNotes').value = state.customer.notes || '';
+  document.getElementById('customerBrandLoyalty').checked = !!state.customer.brandLoyalty;
+}
+clist.addEventListener('input', e=>{
+  if(e.target.matches('.slider')){
+    state.customer.priorities[e.target.dataset.key] = Number(e.target.value);
+    save(); renderProgress();
+  }
+});
+document.getElementById('customerNotes').addEventListener('input', e=>{
+  state.customer.notes = e.target.value; save();
+});
+document.getElementById('customerBrandLoyalty').addEventListener('change', e=>{
+  state.customer.brandLoyalty = e.target.checked; save();
+});
+renderCustomer();
 
-async function init(){
+/* ------------------ System ------------------ */
+const systemOptions = [
+  {key:'regular', label:'Regular (OV)'},
+  {key:'system', label:'System'},
+  {key:'combi', label:'Combi'},
+  {key:'storageCombi', label:'Storage combi'},
+  {key:'warmAir', label:'Warm air'},
+  {key:'ufh', label:'Underfloor'},
+  {key:'none', label:'None'}
+];
+function mkSysTile(opt, group){
+  const el = document.createElement('div');
+  el.className='tile';
+  el.innerHTML = `
+    <div class="sysimg">${opt.label} diagram</div>
+    <div style="margin-top:8px; font-weight:800">${opt.label}</div>
+  `;
+  el.addEventListener('click', ()=>{
+    state.system[group] = opt.key;
+    save(); renderSystem(); renderProgress();
+  });
+  if(state.system[group]===opt.key){
+    el.style.borderColor='var(--brand)';
+    el.style.boxShadow='0 0 0 3px var(--brand-20)';
+  }
+  return el;
+}
+function renderSystem(){
+  const cur = document.getElementById('sysCurrent');
+  const nxt = document.getElementById('sysNew');
+  cur.innerHTML=''; nxt.innerHTML='';
+  systemOptions.forEach(o=>cur.appendChild(mkSysTile(o,'current')));
+  ['regular','system','combi'].map(k=>systemOptions.find(o=>o.key===k)).forEach(o=>{
+    if(o) nxt.appendChild(mkSysTile(o,'next'));
+  });
+  // stubs
+  document.querySelectorAll('#stubs .chip').forEach(ch=>{
+    const k = ch.dataset.stub;
+    ch.classList.toggle('active', !!state.system.stubs[k]);
+  });
+}
+document.getElementById('stubs').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  const k=chip.dataset.stub;
+  state.system.stubs[k]=!state.system.stubs[k];
+  save(); renderSystem();
+});
+renderSystem();
+
+/* ------------------ Safety ------------------ */
+const SAFETY_LIBRARY = {
+  workingAtHeights: {
+    title:'Working at heights',
+    items:[
+      'WAH01 Ladder access required',
+      'WAH02A Scaffold – tower standard',
+      'WAH02B Scaffold – tower bridging',
+      'WAH02C Scaffold – cantilever',
+      'WAH03 Roof access permit required',
+      'WAH04A Loft access boarded',
+      'WAH04B Loft access unboarded',
+      'WAH05 MEWP required',
+      'WAH06 Flat roof – builder to make good',
+      'WAH50 Ladder 1:4 (~75°), secure footing',
+      'WAH51 Reach limits / exclusion zone'
+    ]
+  },
+  environmental: {
+    title:'Environmental',
+    items:['ASB: suspected asbestos','Confined space','Poor lighting','Ventilation concerns','Waste/skip required']
+  },
+  electrical: {
+    title:'Electrical',
+    items:['Spur required','RCD absent','Consumer unit access','Bonding check required']
+  },
+  animals: {
+    title:'Animals',
+    items:['Dogs on site','Cats on site','Livestock nearby','Allergy risk']
+  },
+  customer: {
+    title:'Customer',
+    items:['Vulnerable customer','Interpreter needed','Key-safe access','Carer present']
+  },
+  other: {
+    title:'Other',
+    items:['Parking restrictions','Neighbour access','Permit required','Noise/time restrictions']
+  }
+};
+let currentSafetyKey=null;
+document.querySelectorAll('[data-safety]').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    currentSafetyKey = t.dataset.safety;
+    openSafety(currentSafetyKey);
+  });
+});
+function openSafety(key){
+  const lib = SAFETY_LIBRARY[key];
+  document.getElementById('safetyTitle').textContent = lib.title;
+  const wrap = document.getElementById('safetyChips'); wrap.innerHTML='';
+  const selected = new Set(state.safety[key].items || []);
+  lib.items.forEach(txt=>{
+    const chip = document.createElement('span'); chip.className='chip'; chip.textContent=txt;
+    if(selected.has(txt)) chip.classList.add('active');
+    chip.addEventListener('click', ()=>{
+      if(selected.has(txt)){ selected.delete(txt); }
+      else selected.add(txt);
+      state.safety[key].items = Array.from(selected);
+      chip.classList.toggle('active');
+      save(); renderProgress();
+    });
+    wrap.appendChild(chip);
+  });
+  const notes = document.getElementById('safetyNotes');
+  notes.value = state.safety[key].notes || '';
+  notes.oninput = (e)=>{ state.safety[key].notes = e.target.value; save(); };
+  document.getElementById('safetyPanel').style.display='block';
+}
+
+/* ------------------ Storage & IO ------------------ */
+function save(){
+  state.meta.updated = new Date().toISOString();
+  localStorage.setItem('notesElite', JSON.stringify(state));
+}
+function load(){
+  try{ return JSON.parse(localStorage.getItem('notesElite')); }
+  catch(e){ return null; }
+}
+
+/* Export / Import */
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().replace(/[:.]/g,'-');
+  a.href = URL.createObjectURL(blob);
+  a.download = `depot-notes-${stamp}.json`;
+  a.click();
+});
+document.getElementById('btnImport').addEventListener('click', ()=>document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', async e=>{
+  const file = e.target.files[0]; if(!file) return;
   try{
-    const data = await loadSurveyMarkdown('Options.md');
-    sections = data.sections;
-    sectionMap = new Map(sections.map(sec => [sec.key, sec]));
-    itemIndex = data.itemIndex;
-    autoNotes = data.autoNotes;
-    w3wConfig = data.w3wConfig;
-
-    state.selections = Object.fromEntries(sections.map(sec => [sec.key, new Set()]));
-
-    buildNavigation();
-    const firstButton = nav.querySelector('button');
-    if(firstButton){
-      showSection(sections[0].key, firstButton);
-    }else{
-      titleEl.textContent = 'No sections found';
-      kickerEl.textContent = 'Check Options.md for content.';
-    }
+    const text = await file.text();
+    const obj = JSON.parse(text);
+    state = Object.assign(structuredClone(DEFAULT), obj); // merge with defaults for forward-compat
+    save();
+    renderCustomer(); renderSystem(); renderProgress();
+    document.getElementById('safetyPanel').style.display='none';
+    alert('Imported JSON and refreshed UI.');
   }catch(err){
-    console.error('Failed to load survey markdown', err);
-    titleEl.textContent = 'Failed to load options';
-    kickerEl.textContent = '';
-    tilesEl.innerHTML = `<p style="color:#ff7676">Unable to load Options.md (${escapeHtml(err.message ?? 'unknown error')})</p>`;
-  }finally{
-    updatePreview();
-  }
-}
+    alert('Import failed: '+err.message);
+  }finally{ e.target.value=''; }
+});
 
-/* -------------------------- MARKDOWN PARSING ---------------------------- */
-async function loadSurveyMarkdown(url){
-  const res = await fetch(url);
-  if(!res.ok){
-    throw new Error(`${res.status} ${res.statusText}`);
-  }
-  const text = await res.text();
-  return parseSurveyMarkdown(text);
-}
-
-function parseSurveyMarkdown(text){
-  const lines = text.replace(/\r\n/g, '\n').split('\n');
-  const sections = [];
-  const w3w = {writeTo: [], mirrorDelivery: false};
-  const autoLines = [];
-
-  let currentSection = null;
-  let headingContext = [];
-  let bulletStack = [];
-  let parsingAuto = false;
-
-  for(const rawLine of lines){
-    const line = rawLine;
-    const trimmed = line.trim();
-
-    if(!parsingAuto && /^#\s*Auto Arse-Covers/i.test(trimmed)){
-      parsingAuto = true;
-      continue;
-    }
-    if(parsingAuto){
-      autoLines.push(line);
-      continue;
-    }
-
-    if(/^---$/.test(trimmed)){
-      continue;
-    }
-
-    if(/^##\s+/.test(line)){
-      const title = cleanText(line.replace(/^##\s+/, ''));
-      const section = {
-        key: `sec${sections.length + 1}`,
-        title,
-        displayTitle: prettifyTitle(title),
-        nodes: [],
-        sectionRules: []
-      };
-      sections.push(section);
-      currentSection = section;
-      headingContext = [];
-      bulletStack = [];
-      continue;
-    }
-
-    if(!currentSection){
-      continue;
-    }
-
-    if(/^###\s+/.test(line)){
-      const heading = cleanText(line.replace(/^###\s+/, ''));
-      headingContext = heading ? [heading] : [];
-      bulletStack = [];
-      continue;
-    }
-
-    if(/^####\s+/.test(line)){
-      const heading = cleanText(line.replace(/^####\s+/, ''));
-      if(heading){
-        headingContext[1] = heading;
-      }
-      bulletStack = [];
-      continue;
-    }
-
-    if(!trimmed){
-      continue;
-    }
-
-    if(trimmed.startsWith('<!--')){
-      const ruleMatch = trimmed.match(/<!--\s*rule:\s*([a-zA-Z0-9_]+)\s*=\s*([^>]+?)\s*-->/);
-      if(ruleMatch){
-        const [, name, rawValue] = ruleMatch;
-        const value = /^true$/i.test(rawValue.trim());
-        const target = bulletStack.length ? bulletStack[bulletStack.length - 1] : null;
-        if(target){
-          target.ownRules.push({name, value});
-        }else{
-          currentSection.sectionRules.push({name, value});
-        }
-        continue;
-      }
-
-      const w3wMatch = trimmed.match(/<!--\s*w3w:([a-zA-Z0-9_]+)\s*=\s*([^>]+?)\s*-->/);
-      if(w3wMatch){
-        const [, key, raw] = w3wMatch;
-        if(key === 'write_to'){
-          try{
-            const arr = JSON.parse(raw.trim());
-            if(Array.isArray(arr)){
-              w3w.writeTo = arr;
-            }
-          }catch(err){
-            console.warn('Failed to parse w3w write_to directive', raw, err);
-          }
-        }else if(key === 'mirror_delivery'){
-          w3w.mirrorDelivery = /^true$/i.test(raw.trim());
-        }
-        continue;
-      }
-      continue;
-    }
-
-    const bulletMatch = line.match(/^(\s*)-\s+(.*)$/);
-    if(bulletMatch){
-      const indentSpaces = bulletMatch[1].length;
-      const level = Math.floor(indentSpaces / 2);
-      while(bulletStack.length > level){
-        bulletStack.pop();
-      }
-
-      const content = bulletMatch[2];
-      const isCheckbox = /^\[.?\]/.test(content);
-      let text = content;
-      if(isCheckbox){
-        text = content.replace(/^\[.?\]\s*/, '');
-      }
-      const cleaned = cleanText(text);
-      const parent = bulletStack.length ? bulletStack[bulletStack.length - 1] : null;
-      const node = {
-        text: cleaned,
-        level,
-        parent,
-        children: [],
-        headingContext: headingContext.filter(Boolean).filter(h => !/^Choose one$/i.test(h)),
-        ownRules: [],
-        selectable: isCheckbox
-      };
-      if(parent){
-        parent.children.push(node);
-      }
-      currentSection.nodes.push(node);
-      bulletStack.push(node);
-    }
-  }
-
-  const itemIndex = new Map();
-  sections.forEach(section => {
-    section.displayTitle = section.displayTitle || section.title;
-    const baseBucket = determineSectionBucket(section.displayTitle);
-    const items = [];
-
-    section.nodes.forEach(node => {
-      if(!node.selectable){
-        return;
-      }
-
-      const ancestors = [];
-      let parent = node.parent;
-      while(parent){
-        if(parent.text){
-          ancestors.unshift(parent.text);
-        }
-        parent = parent.parent;
-      }
-
-      const contextParts = [...node.headingContext, ...ancestors];
-      const context = contextParts.length ? contextParts.join(' → ') : '';
-      const main = node.text;
-      const preview = context ? `${context} → ${main}` : main;
-      const html = `<div class="label">${escapeHtml(main)}</div>${context ? `<small>${escapeHtml(context)}</small>` : ''}`;
-
-      const ruleMap = new Map(section.sectionRules.map(r => [r.name, r.value]));
-      let cursor = node;
-      while(cursor){
-        cursor.ownRules.forEach(r => ruleMap.set(r.name, r.value));
-        cursor = cursor.parent;
-      }
-      const rules = Array.from(ruleMap.entries()).map(([name, value]) => ({name, value}));
-
-      const bucket = deriveBucket(baseBucket, contextParts);
-      const id = `item${itemIndex.size + 1}`;
-      const item = {
-        id,
-        sectionKey: section.key,
-        sectionTitle: section.title,
-        sectionDisplayTitle: section.displayTitle,
-        main,
-        context,
-        preview,
-        html,
-        rules,
-        bucket
-      };
-
-      items.push(item);
-      itemIndex.set(id, item);
-    });
-
-    section.items = items;
-    section.bucketName = baseBucket;
-  });
-
-  const autoNotes = parseAutoSection(autoLines);
-
-  return {sections, itemIndex, autoNotes, w3wConfig: w3w};
-}
-
-function parseAutoSection(lines){
-  const notes = {__always: []};
-  let currentKey = null;
-
-  for(const rawLine of lines){
-    const line = rawLine.trim();
-    if(!line){
-      continue;
-    }
-
-    const ifMatch = line.match(/^- \*\*If `([^`]+)`\*\*/i);
-    if(ifMatch){
-      currentKey = ifMatch[1];
-      if(!notes[currentKey]){
-        notes[currentKey] = [];
-      }
-      continue;
-    }
-
-    const alwaysMatch = line.match(/^- \*\*Always include General\*\*/i);
-    if(alwaysMatch){
-      currentKey = '__always';
-      if(!notes.__always){
-        notes.__always = [];
-      }
-      continue;
-    }
-
-    if(line.startsWith('- ') && currentKey){
-      const text = cleanText(line.slice(2));
-      if(text){
-        notes[currentKey].push(text);
-      }
-    }
-  }
-
-  if(!notes.__always){
-    notes.__always = [];
-  }
-
-  return notes;
-}
-
-/* ------------------------------- HELPERS -------------------------------- */
-function prettifyTitle(title){
-  return title.replace(/^\d+\)\s*/, '').trim();
-}
-
-function cleanText(str){
-  return str
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/__(.*?)__/g, '$1')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function escapeHtml(str){
-  return str.replace(/[&<>"']/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch]));
-}
-
-function determineSectionBucket(displayTitle){
-  const clean = displayTitle.replace(/\(.*?\)/g, '').trim();
-  const lower = clean.toLowerCase();
-  if(lower.includes('delivery') && lower.includes('office')){
-    return 'Delivery notes';
-  }
-  if(lower.includes('delivery')){
-    return 'Delivery notes';
-  }
-  if(lower.includes('office')){
-    return 'Office notes';
-  }
-  if(/working at heights/i.test(clean)){
-    return 'Working at heights';
-  }
-  if(/external hazards/i.test(clean)){
-    return 'External hazards';
-  }
-  if(/customer actions/i.test(clean)){
-    return 'Customer actions';
-  }
-  if(/components/i.test(clean) && /assistance/i.test(clean)){
-    return 'Components that require assistance';
-  }
-  if(/restrictions/i.test(clean)){
-    return 'Restrictions to work';
-  }
-  if(/flue/i.test(clean)){
-    return 'Flue';
-  }
-  if(/pipe work/i.test(clean)){
-    return 'Pipe work';
-  }
-  if(/disruption/i.test(clean)){
-    return 'Disruption';
-  }
-  if(/needs/i.test(clean)){
-    return 'Needs';
-  }
-  if(/system/i.test(clean) && /controls/i.test(clean)){
-    return 'New boiler and controls';
-  }
-  if(/universal requirements/i.test(clean)){
-    return 'Universal requirements';
-  }
-  if(/old boiler/i.test(clean)){
-    return 'System change planning';
-  }
-  return clean;
-}
-
-function deriveBucket(baseBucket, contextParts){
-  if(baseBucket === 'Delivery notes' && contextParts.some(part => /office/i.test(part))){
-    return 'Office notes';
-  }
-  return baseBucket;
-}
-
-/* ------------------------------ UI BUILD -------------------------------- */
-function buildNavigation(){
-  nav.innerHTML = '';
-  sections.forEach(section => {
-    const btn = document.createElement('button');
-    btn.textContent = section.displayTitle;
-    btn.onclick = () => showSection(section.key, btn);
-    nav.append(btn);
-  });
-}
-
-function showSection(sectionKey, btn){
-  nav.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-  if(btn){
-    btn.classList.add('active');
-  }
-
-  const section = sectionMap.get(sectionKey);
-  if(!section){
-    return;
-  }
-
-  titleEl.textContent = section.displayTitle;
-  kickerEl.textContent = 'Select all that apply';
-  tilesEl.innerHTML = '';
-
-  section.items.forEach(item => {
-    const tile = document.createElement('label');
-    tile.className = 'tile';
-
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.checked = state.selections[section.key]?.has(item.id) ?? false;
-    cb.onchange = (event) => {
-      const set = state.selections[section.key];
-      if(event.target.checked){
-        set.add(item.id);
-      }else{
-        set.delete(item.id);
-      }
-      updatePreview();
-    };
-
-    const text = document.createElement('div');
-    text.innerHTML = item.html;
-
-    tile.append(cb, text);
-    tilesEl.append(tile);
-  });
-
-  updatePreview();
-}
-
-/* ----------------------- PREVIEW / MAPPING / EXPORT -------------------- */
-function buildDepotBuckets(){
-  if(!sections.length){
-    return [];
-  }
-
-  const bucketMap = new Map();
-  const activeRules = {};
-
-  sections.forEach(section => {
-    const set = state.selections[section.key];
-    if(!set){
-      return;
-    }
-    set.forEach(id => {
-      const item = itemIndex.get(id);
-      if(!item){
-        return;
-      }
-      if(!bucketMap.has(item.bucket)){
-        bucketMap.set(item.bucket, new Set());
-      }
-      bucketMap.get(item.bucket).add(`• ${item.preview}`);
-
-      item.rules.forEach(rule => {
-        if(rule.value){
-          activeRules[rule.name] = true;
-        }else if(!(rule.name in activeRules)){
-          activeRules[rule.name] = false;
-        }
-      });
-    });
-  });
-
-  if(state.w3w){
-    const line = `• what3words: ${state.w3w}`;
-    if(Array.isArray(w3wConfig.writeTo) && w3wConfig.writeTo.length){
-      w3wConfig.writeTo.forEach(bucket => {
-        if(!bucketMap.has(bucket)){
-          bucketMap.set(bucket, new Set());
-        }
-        bucketMap.get(bucket).add(line);
-      });
-    }
-
-    if(w3wConfig.mirrorDelivery && bucketMap.has('Delivery notes') && bucketMap.get('Delivery notes').has(line)){
-      if(!bucketMap.has('Office notes')){
-        bucketMap.set('Office notes', new Set());
-      }
-      bucketMap.get('Office notes').add(line);
-    }
-  }
-
-  const autoSet = new Set();
-  if(Array.isArray(autoNotes.__always)){
-    autoNotes.__always.forEach(note => autoSet.add(`• ${note}`));
-  }
-  Object.entries(autoNotes).forEach(([rule, notes]) => {
-    if(rule === '__always'){
-      return;
-    }
-    if(activeRules[rule] && Array.isArray(notes)){
-      notes.forEach(note => autoSet.add(`• ${note}`));
-    }
-  });
-  if(autoSet.size){
-    bucketMap.set('Arse-cover notes (auto)', autoSet);
-  }
-
-  return [...bucketMap.entries()].map(([bucket, lines]) => ({bucket, lines: [...lines]}));
-}
-
-function updatePreview(){
-  const entries = buildDepotBuckets();
-  if(!entries.length){
-    previewEl.innerHTML = '<em>No selections yet.</em>';
-  }else{
-    previewEl.innerHTML = entries.map(entry => {
-      const listItems = entry.lines.map(li => `<li>${li}</li>`).join('');
-      return `<p class="pill">${entry.bucket}</p><ul>${listItems}</ul>`;
-    }).join('');
-  }
-
-  const depotNotesObject = Object.fromEntries(entries.map(entry => [entry.bucket, entry.lines]));
-  const exportObj = {
-    generated_at: new Date().toISOString(),
-    what3words: state.w3w,
-    depot_notes: depotNotesObject
-  };
-  jsonBox.textContent = JSON.stringify(exportObj, null, 2);
-}
-
-/* -------------------------- WHAT3WORDS HOOKS ---------------------------- */
-function openW3W(){
-  const hint = encodeURIComponent(state.w3w ?? '');
-  const url = `shortcuts://run-shortcut?name=Add%20what3words&input=text&text=${hint}`;
-  window.location.href = url;
-}
-
-function promptManualW3W(){
-  const input = prompt('Type what3words (e.g. index.home.raft):', state.w3w ?? '');
-  if(!input){
-    return;
-  }
-  state.w3w = input.trim();
-  w3wBox.innerHTML = `<span class="success">✓</span> ${state.w3w}`;
-  updatePreview();
-}
-
-async function geoToW3W(){
-  if(!navigator.geolocation){
-    alert('Geolocation not available');
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(async position => {
-    const {latitude: lat, longitude: lng} = position.coords;
-    try{
-      const url = `https://w3w-proxy.martinbibb.worker.dev/convert-to-3wa?coordinates=${lat},${lng}`;
-      const response = await fetch(url);
-      if(!response.ok){
-        throw new Error('Proxy error');
-      }
-      const data = await response.json();
-      const words = data.words || data.threeWords || data.words3 || data.w3w || null;
-      if(!words){
-        throw new Error('Unexpected response from proxy');
-      }
-      state.w3w = words;
-      w3wBox.innerHTML = `<span class="success">✓</span> ${state.w3w} <small>(${lat.toFixed(5)}, ${lng.toFixed(5)})</small>`;
-      updatePreview();
-    }catch(err){
-      console.warn(err);
-      alert('Couldn’t convert location via proxy. Enter manually.');
-      promptManualW3W();
-    }
-  }, error => alert('Location error: ' + error.message), {enableHighAccuracy: true, timeout: 12000});
-}
-
-/* ---------------------------- EXPORT (FILE) ----------------------------- */
-function exportJSON(){
-  const data = jsonBox.textContent;
-  const blob = new Blob([data], {type: 'application/json'});
-  const anchor = document.createElement('a');
-  anchor.href = URL.createObjectURL(blob);
-  anchor.download = `depot-notes_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-  anchor.click();
-  URL.revokeObjectURL(anchor.href);
-}
+/* ------------------ Navigation clicks from tiles ------------------ */
+document.querySelectorAll('.tile[data-go]').forEach(t=> t.addEventListener('click', ()=>go(t.dataset.go)));
+/* Initial */
+go('home');
 </script>
 </body>
 </html>
