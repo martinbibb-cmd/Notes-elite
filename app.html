@@ -62,6 +62,21 @@ h2{font-size:28px;margin:8px 0 12px;text-align:center}
 .condensateHotspot.active{background:#0b3a76}
 .condensateVisual .note{position:absolute;left:16px;bottom:16px;background:rgba(255,255,255,.92);padding:8px 12px;border-radius:10px;
   color:var(--muted);font-size:12px;max-width:70%}
+.figureGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:12px}
+.figureCard{margin:0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow);display:grid;gap:10px;justify-items:center}
+.figureCard img{width:100%;height:200px;object-fit:cover;border-radius:10px}
+.figureCard figcaption{color:var(--muted);font-size:13px;text-align:center}
+.logoGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-top:12px}
+.logoCard{background:#fff;border:1px solid var(--brand-20);border-radius:16px;padding:18px;display:flex;align-items:center;justify-content:center;min-height:110px;box-shadow:var(--shadow)}
+.logoCard img{max-width:100%;max-height:60px;object-fit:contain}
+.logoWord{font-weight:800;font-size:26px;letter-spacing:1px}
+.logoWord.ideal{background:#005c99;color:#fff;padding:10px 18px;border-radius:10px;text-transform:uppercase;letter-spacing:4px}
+.infoCard{display:grid;gap:12px}
+.specTable{width:100%;border-collapse:collapse;font-size:14px}
+.specTable thead{background:#eef2ff;color:#1e3a8a}
+.specTable th,.specTable td{border:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}
+.specTable tbody tr:nth-child(even){background:#f8fafc}
+.specTable strong{color:var(--ink)}
 @media(max-width:900px){.tiles{grid-template-columns:1fr}.item{grid-template-columns:36px 1fr}.sysTiles{grid-template-columns:1fr}}
 </style>
 </head>
@@ -282,6 +297,12 @@ function renderSysSelect(title,group){
     wrap.appendChild(t);
   });
   card.appendChild(wrap); sysContent.appendChild(card);
+  if(group==='next'){
+    renderBoilerBrandShowcase();
+    if(state.system.next==='regular'){
+      renderWorcesterRegularRange();
+    }
+  }
 }
 
 function renderVisualChoiceGrid(title,choices,current,onPick){
@@ -370,6 +391,20 @@ function renderCondensate(){
       renderSystemStep();
     });
   });
+  const gallery=document.createElement('div'); gallery.className='card infoCard';
+  gallery.innerHTML=`<h3 style="margin:0">Condensate examples</h3>
+    <p class="help">Use visuals to help the customer understand where the condensate will discharge.</p>
+    <div class="figureGrid">
+      <figure class="figureCard">
+        <img src="assets/Internal-condensate.PNG" alt="Internal condensate trap connected to sink waste">
+        <figcaption>Internal waste tie-in keeps the pipe frost-free. Confirm visible fall and permanent trap.</figcaption>
+      </figure>
+      <figure class="figureCard">
+        <img src="assets/Horizontal-flue-right.jpg" alt="External condensate termination with soakaway gully">
+        <figcaption>External soakaway routes need 42&nbsp;mm insulated pipework and a protected termination point.</figcaption>
+      </figure>
+    </div>`;
+  sysContent.appendChild(gallery);
   mkChoiceCard('Condensate route',
     [
       {key:'internalWaste',label:'Internal waste'},
@@ -402,6 +437,62 @@ function renderCylinder(){
     (k)=>{state.system.cylinder.plan=k;save();renderSystemStep()},
     {get:()=>state.system.cylinder.notes,set:v=>state.system.cylinder.notes=v}
   );
+}
+function renderBoilerBrandShowcase(){
+  const card=document.createElement('div'); card.className='card infoCard';
+  card.innerHTML=`<h3 style="margin:0">New boiler short list</h3>
+    <p class="help">Quickly flag the brand families you plan to quote or install.</p>`;
+  const logos=[
+    {src:'assets/Worcester-logo.PNG',alt:'Worcester Bosch logo'},
+    {src:'assets/Vaillant-logo.PNG',alt:'Vaillant logo'},
+    {src:'assets/Glow-worm-logo.JPG',alt:'Glow-worm logo'},
+    {text:'ideal'},
+    {src:'assets/Viessmann-logo.JPG',alt:'Viessmann logo'}
+  ];
+  const grid=document.createElement('div'); grid.className='logoGrid';
+  logos.forEach(l=>{
+    const cell=document.createElement('div'); cell.className='logoCard';
+    cell.innerHTML=l.src?`<img src="${l.src}" alt="${l.alt}">`:`<span class="logoWord ideal">${l.text}</span>`;
+    grid.appendChild(cell);
+  });
+  card.appendChild(grid);
+  sysContent.appendChild(card);
+}
+function renderWorcesterRegularRange(){
+  const card=document.createElement('div'); card.className='card infoCard';
+  card.innerHTML=`<h3 style="margin:0">Worcester regular conventional range</h3>
+    <p class="help">Use as a primer when matching outputs or space for a straight regular-to-regular swap.</p>`;
+  const table=document.createElement('table'); table.className='specTable';
+  table.innerHTML=`<thead>
+      <tr>
+        <th scope="col">Model</th>
+        <th scope="col">Heat outputs (kW)</th>
+        <th scope="col">Dimensions (H×W×D mm)</th>
+        <th scope="col">Installer notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row"><strong>Greenstar Ri</strong></th>
+        <td>12, 15, 18, 21, 24, 27, 30</td>
+        <td>600 × 390 × 270</td>
+        <td>Compact wall-hung chassis fits airing cupboards; keep existing F&amp;E or convert to sealed.</td>
+      </tr>
+      <tr>
+        <th scope="row"><strong>Greenstar 8000 Life Regular</strong></th>
+        <td>30, 35, 40, 45</td>
+        <td>780 × 440 × 365</td>
+        <td>Modern fascia with load-comp controls; best for higher output sealed systems.</td>
+      </tr>
+      <tr>
+        <th scope="row"><strong>Greenstar CDi FS Regular</strong></th>
+        <td>30, 35</td>
+        <td>850 × 520 × 600</td>
+        <td>Floor-standing swap for legacy floor boilers; check plinth depth and rear clearances.</td>
+      </tr>
+    </tbody>`;
+  card.appendChild(table);
+  sysContent.appendChild(card);
 }
 renderSystemStep();
 
