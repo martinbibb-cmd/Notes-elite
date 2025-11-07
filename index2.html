@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Quick Depot Notes</title>
+<style>
+:root {
+  --bg:#f7f8fa; --fg:#0f172a; --card:#fff; --accent:#0284c7;
+  --border:#d1d5db; --pad:12px;
+}
+body {
+  font-family:-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--bg); color:var(--fg); margin:0; padding:0;
+}
+header {
+  text-align:center; padding:1rem; background:var(--accent); color:white;
+  font-size:1.2rem; font-weight:600;
+}
+main { display:flex; flex-direction:column; align-items:center; padding:1rem; }
+.grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px; width:100%; max-width:700px;
+}
+.tile {
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:var(--pad); text-align:center; font-weight:500; cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+  transition:all .15s ease;
+}
+.tile.selected { border-color:var(--accent); background:#e0f2fe; }
+#modal {
+  position:fixed; inset:0; background:rgba(0,0,0,0.45);
+  display:none; align-items:center; justify-content:center; z-index:100;
+}
+#modalContent {
+  background:var(--card); border-radius:14px; width:90%; max-width:400px;
+  padding:1rem;
+}
+#modalContent h2 { margin-top:0; }
+.option {
+  border:1px solid var(--border); border-radius:10px; padding:.6rem;
+  margin:.4rem 0; cursor:pointer; text-align:center;
+}
+.option:hover { background:#f1f5f9; }
+#summaryBox {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:1rem; width:100%; max-width:700px;
+  margin-top:1rem; white-space:pre-wrap;
+}
+button {
+  background:var(--accent); color:white; border:none; border-radius:8px;
+  padding:.8rem 1.2rem; font-size:1rem; cursor:pointer; margin-top:1rem;
+}
+button:hover { opacity:.9; }
+</style>
+</head>
+<body>
+<header>Quick Depot Notes</header>
+<main>
+  <div class="grid" id="tiles"></div>
+  <div id="summaryBox">Start selecting notes to build your summary…</div>
+  <button onclick="generateSummary()">Generate Summary</button>
+</main>
+
+<div id="modal">
+  <div id="modalContent">
+    <h2 id="modalTitle"></h2>
+    <div id="modalOptions"></div>
+  </div>
+</div>
+
+<script>
+const sections = {
+  "Needs":["Better water pressure","Faster hot water","More space","Lower running costs"],
+  "Working at heights":["Ladder access","Scaffold – tower","Scaffold – bridging","Roof permit required"],
+  "System characteristics":["Regular","System","Combi","Mixergy","Heat pump-ready"],
+  "Components that require assistance":["Cylinder","Flue","Controls","Gas run"],
+  "Restrictions to work":["Limited access","Customer objects","Time restrictions","Pets/children"],
+  "External hazards":["Uneven ground","Vehicles","Public access","Weather exposure"],
+  "Delivery notes":["Standard delivery","Tight access","Customer to move items"],
+  "Office notes":["Electrical check needed","Permit required","Quote variation"],
+  "New boiler and controls":["Combi","System","Regular","Mixergy"],
+  "Flue":["Rear","Side","Vertical","Reroute required"],
+  "Pipe work":["Minor reroute","Major reroute","Condensate","Gas run"],
+  "Disruption":["Minimal","Moderate","High – kitchen/bathroom"],
+  "Customer actions":["Customer informed about making good","Customer aware of downtime","Customer supplied fittings"]
+};
+
+let selections = {};
+const tilesDiv = document.getElementById('tiles');
+const modal = document.getElementById('modal');
+const modalTitle = document.getElementById('modalTitle');
+const modalOptions = document.getElementById('modalOptions');
+const summaryBox = document.getElementById('summaryBox');
+
+Object.keys(sections).forEach(sec=>{
+  const t=document.createElement('div');
+  t.className='tile';
+  t.textContent=sec;
+  t.onclick=()=>openModal(sec);
+  tilesDiv.appendChild(t);
+});
+
+function openModal(section){
+  modalTitle.textContent=section;
+  modalOptions.innerHTML='';
+  sections[section].forEach(opt=>{
+    const o=document.createElement('div');
+    o.className='option';
+    o.textContent=opt;
+    o.onclick=()=>selectOption(section,opt);
+    modalOptions.appendChild(o);
+  });
+  modal.style.display='flex';
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') modal.style.display='none';
+});
+
+modal.addEventListener('click',e=>{
+  if(e.target===modal) modal.style.display='none';
+});
+
+function selectOption(section,option){
+  selections[section]=option;
+  modal.style.display='none';
+  document.querySelectorAll('.tile').forEach(t=>{
+    if(t.textContent===section) t.classList.add('selected');
+  });
+  updateSummary();
+}
+
+function updateSummary(){
+  let lines=[];
+  for(let [sec,opt] of Object.entries(selections)){
+    lines.push(`${sec}: ${opt}`);
+  }
+  summaryBox.textContent = lines.length ? lines.join('\n') : "Start selecting notes to build your summary…";
+}
+
+function generateSummary(){
+  let s="Job summary:\n";
+  for(let [sec,opt] of Object.entries(selections)){
+    s+=`- ${opt} (${sec.toLowerCase()})\n`;
+  }
+  summaryBox.textContent=s.trim();
+}
+</script>
+</body>
+</html>
