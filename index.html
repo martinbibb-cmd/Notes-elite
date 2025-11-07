@@ -1,458 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Depot Notes-Elite (PWA)</title>
-<meta name="theme-color" content="#0a67ff"/>
-<link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;Depot Notes-Elite&quot;,&quot;short_name&quot;:&quot;Notes-Elite&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#ffffff&quot;,&quot;theme_color&quot;:&quot;#0a67ff&quot;}">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Depot Notes Launcher</title>
+<meta name="theme-color" content="#0a67ff" />
 <style>
-:root{
-  --bg:#fff;--ink:#0b3a76;--brand:#0a67ff;--brand-20:#0a67ff33;--line:#cfd8e3;--tile:#f8fafc;
-  --muted:#6b7280;--radius:16px;--shadow:0 6px 24px rgba(0,0,0,.06)
+:root {
+  --bg:#f1f5f9; --panel:#ffffffee; --ink:#0f172a; --muted:#475569; --brand:#0a67ff;
+  --radius:18px; --shadow:0 30px 60px rgba(15,23,42,0.12);
 }
-*{box-sizing:border-box}html,body{height:100%}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--ink);background:var(--bg)}
-.app{max-width:1100px;margin:0 auto;padding:24px 24px 80px;min-height:100dvh;
-  background:radial-gradient(#e5e7eb 1px,transparent 1px) 0 0/18px 18px}
-h1{font-size:40px;margin:8px 0 16px;text-align:center}
-h2{font-size:28px;margin:8px 0 12px;text-align:center}
-.grid{display:grid;gap:24px}
-.tiles{display:grid;grid-template-columns:repeat(3,minmax(200px,1fr));gap:24px}
-.tile{background:var(--tile);border:2px solid var(--brand-20);border-radius:var(--radius);
-  padding:28px;text-align:center;font-weight:700;font-size:28px;color:#0a67ff;cursor:pointer;
-  transition:transform .06s,box-shadow .1s,border-color .1s;box-shadow:var(--shadow)}
-.tile:hover{transform:translateY(-2px)}
-.header{display:flex;gap:12px;align-items:center;margin:8px 0 16px}
-.btn{appearance:none;border:0;background:var(--brand);color:#fff;border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer;box-shadow:var(--shadow)}
-.btn.ghost{background:transparent;color:var(--brand);border:2px solid var(--brand-20)}
-.btn.small{padding:8px 12px;font-size:14px}
-.row{display:flex;gap:24px;align-items:flex-start}
-.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
-.list{display:grid;gap:16px}
-.item{display:grid;grid-template-columns:36px 1fr 240px;gap:16px;align-items:center}
-.slider{width:100%}
-.noteBox{min-height:260px;width:100%;resize:vertical;padding:12px;border-radius:12px;border:1px solid var(--line)}
-.help{color:var(--muted);font-size:13px}
-.section{display:none}.section.active{display:block}
-.progress{height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:24px 0 8px}
-.progress>div{height:100%;width:0;background:var(--brand);transition:width .2s}
-.footerActions{position:fixed;right:18px;bottom:18px;display:flex;gap:10px;z-index:9}
-.iconBtn{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;box-shadow:var(--shadow)}
-.iconBtn:hover{border-color:#9aa4b2}
-.kv{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
-.chip{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;font-size:14px}
-.chip.active{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-20) inset;color:var(--brand)}
-.sysimg{display:flex;align-items:center;justify-content:center;background:#fff;border:1px dashed var(--line);height:160px;border-radius:12px;font-size:13px;color:var(--muted)}
-.sysimg img{max-width:100%;max-height:140px;object-fit:contain;display:block}
-.badge{background:#eef2ff;color:#2f5aff;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}
-.sep{height:1px;background:#e5e7eb;margin:10px 0}
-.stepbar{display:flex;gap:6px;flex-wrap:wrap}
-.pill{padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px}
-.pill.active{border-color:var(--brand);color:var(--brand);background:#fff}
-.sysTiles{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.sysTile{border:2px solid var(--brand-20);border-radius:14px;padding:12px;cursor:pointer;text-align:center;background:#fff}
-.sysTile.active{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-20)}
-.condensateVisual{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
-.condensateVisual img{display:block;width:100%;height:auto}
-.condensateHotspot{position:absolute;transform:translate(-50%,-50%);background:rgba(10,103,255,.92);color:#fff;border:0;
-  border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:var(--shadow);transition:transform .12s,box-shadow .12s}
-.condensateHotspot:hover{transform:translate(-50%,-50%) scale(1.04)}
-.condensateHotspot.active{background:#0b3a76}
-.condensateVisual .note{position:absolute;left:16px;bottom:16px;background:rgba(255,255,255,.92);padding:8px 12px;border-radius:10px;
-  color:var(--muted);font-size:12px;max-width:70%}
-@media(max-width:900px){.tiles{grid-template-columns:1fr}.item{grid-template-columns:36px 1fr}.sysTiles{grid-template-columns:1fr}}
+* { box-sizing:border-box; }
+body {
+  margin:0; min-height:100vh; font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:radial-gradient(circle at top,#dbeafe 0%,#f8fafc 55%,#e2e8f0 100%);
+  color:var(--ink); display:flex; align-items:center; justify-content:center;
+  padding:32px;
+}
+main {
+  width:100%; max-width:960px; background:var(--panel); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:48px 56px; display:grid; gap:32px;
+}
+header {
+  display:grid; gap:12px; text-align:center;
+}
+header h1 { margin:0; font-size:2.4rem; }
+header p { margin:0; color:var(--muted); font-size:1.05rem; }
+.section-grid {
+  display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+}
+.app-card {
+  border:1px solid rgba(148,163,184,0.35); border-radius:16px; padding:24px;
+  background:white; display:grid; gap:16px; transition:transform .15s ease, box-shadow .15s ease;
+}
+.app-card:hover {
+  transform:translateY(-4px);
+  box-shadow:0 18px 36px rgba(15,23,42,0.16);
+}
+.app-card h2 { margin:0; font-size:1.4rem; color:var(--brand); }
+.app-card p { margin:0; color:var(--muted); line-height:1.4; }
+.app-card a {
+  justify-self:start; background:var(--brand); color:white; padding:10px 18px;
+  border-radius:999px; font-weight:600; text-decoration:none; letter-spacing:.01em;
+}
+footer { text-align:center; color:var(--muted); font-size:.9rem; }
+footer a { color:var(--brand); font-weight:600; text-decoration:none; }
 </style>
 </head>
 <body>
-<div class="app">
-  <h1>Depot notes</h1>
-
-  <!-- HOME -->
-  <section id="home" class="section active">
-    <div class="tiles">
-      <div class="tile" data-go="customer">Customer</div>
-      <div class="tile" data-go="system">System</div>
-      <div class="tile" data-go="safety">Safety</div>
-    </div>
-    <div class="progress"><div id="progressBar"></div></div>
-    <div class="help">Export/Import JSON from the bottom-right. Autosaves locally.</div>
+<main>
+  <header>
+    <h1>Depot Notes Hub</h1>
+    <p>Choose the workspace that suits what you need to capture on site today.</p>
+  </header>
+  <section class="section-grid">
+    <article class="app-card">
+      <h2>Depot Notes-Elite</h2>
+      <p>The full guided note-taking experience with customer, system and safety flows, imports and exports.</p>
+      <a href="app.html">Open full app</a>
+    </article>
+    <article class="app-card">
+      <h2>Quick Depot Notes</h2>
+      <p>Fast checklist builder for summarising key needs and site requirements in minutes.</p>
+      <a href="index2.html">Launch quick notes</a>
+    </article>
   </section>
-
-  <!-- CUSTOMER -->
-  <section id="customer" class="section">
-    <div class="header">
-      <button class="btn small" data-go="home">Home</button>
-      <span class="badge">Customer priorities</span>
-    </div>
-    <h2>Customer</h2>
-    <div class="row">
-      <div class="card" style="flex:1">
-        <div class="list" id="customerList"></div>
-      </div>
-      <div class="card" style="width:360px">
-        <div class="kv"><strong>Notes</strong><span class="help">e.g. Future plans</span></div>
-        <textarea id="customerNotes" class="noteBox" placeholder="Type notes…"></textarea>
-        <div class="sep"></div>
-        <label class="help"><input type="checkbox" id="customerBrandLoyalty"> Customer prefers specific brand</label>
-      </div>
-    </div>
-  </section>
-
-  <!-- SYSTEM (Guided) -->
-  <section id="system" class="section">
-    <div class="header">
-      <button class="btn small" data-go="home">Home</button>
-      <span class="badge">System mapping</span>
-      <div class="stepbar" id="stepbar"></div>
-      <div style="margin-left:auto;display:flex;gap:8px">
-        <button class="btn small ghost" id="stepBack">Back</button>
-        <button class="btn small" id="stepNext">Next</button>
-      </div>
-    </div>
-    <h2 id="sysTitle">System</h2>
-    <div id="sysContent" class="grid"></div>
-  </section>
-
-  <!-- SAFETY -->
-  <section id="safety" class="section">
-    <div class="header">
-      <button class="btn small" data-go="home">Home</button>
-      <span class="badge">Safety</span>
-    </div>
-    <h2>Safety</h2>
-    <div class="tiles" style="grid-template-columns:repeat(3,minmax(220px,1fr))">
-      <div class="tile" data-safety="workingAtHeights">Working at heights</div>
-      <div class="tile" data-safety="environmental">Environmental</div>
-      <div class="tile" data-safety="electrical">Electrical</div>
-      <div class="tile" data-safety="animals">Animals</div>
-      <div class="tile" data-safety="customer">Customer</div>
-      <div class="tile" data-safety="other">Other</div>
-    </div>
-    <div id="safetyPanel" class="card" style="margin-top:20px;display:none">
-      <div class="kv"><strong id="safetyTitle">Category</strong><span class="help">Tap to toggle.</span></div>
-      <div class="chips" id="safetyChips"></div>
-      <div class="sep"></div>
-      <textarea id="safetyNotes" class="noteBox" placeholder="Category notes…"></textarea>
-    </div>
-  </section>
-
-  <!-- Floating actions -->
-  <div class="footerActions">
-    <button id="btnImport" class="iconBtn" title="Import JSON">📥 Import</button>
-    <button id="btnExport" class="iconBtn" title="Export JSON">📤 Export</button>
-  </div>
-  <input type="file" id="fileInput" accept="application/json" hidden />
-</div>
-
-<script>
-/* ---------- Schema & State ---------- */
-const DEFAULT = {
-  meta:{app:"Depot Notes-Elite PWA",version:"0.2.0",updated:new Date().toISOString()},
-  customer:{
-    priorities:{disruption:50,ongoingCost:50,immediateCost:50,waterPressure:50,multipleTaps:50,futurePlans:50,brandLoyaltyLevel:50,afterCare:50},
-    notes:"",brandLoyalty:false
-  },
-  system:{
-    current:null, next:null,
-    flue:{route:null,notes:""},         // 'rear'|'horizontal'|'vertical45'|'vertical90'
-    gas:{plan:null,notes:""},           // 'existingOK'|'upgrade'|'meterMove'
-    condensate:{route:null,notes:""},   // 'internalWaste'|'externalSoakaway'|'pump'|'traceHeat'
-    cylinder:{plan:null,notes:""}       // 'keepVented'|'newUnvented'|'newVented'|'remove'
-  },
-  safety:{
-    workingAtHeights:{items:[],notes:""},
-    environmental:{items:[],notes:""},
-    electrical:{items:[],notes:""},
-    animals:{items:[],notes:""},
-    customer:{items:[],notes:""},
-    other:{items:[],notes:""}
-  }
-};
-let state = load() || structuredClone(DEFAULT);
-
-/* ---------- Router ---------- */
-const sections=[...document.querySelectorAll('.section')];
-document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',()=>go(el.dataset.go)));
-function go(id){sections.forEach(s=>s.classList.toggle('active',s.id===id));window.scrollTo({top:0,behavior:'instant'});save();renderProgress()}
-function renderProgress(){
-  let total=12, score=0;
-  const p=state.customer.priorities; score+=Object.values(p).filter(v=>v!==50).length;
-  if(state.system.current)score++; if(state.system.next)score++;
-  if(state.system.flue.route)score++; if(state.system.gas.plan)score++; if(state.system.condensate.route)score++;
-  if(state.system.cylinder.plan)score++;
-  const anySafety=Object.values(state.safety).some(v=>v.items?.length); if(anySafety)score++;
-  document.getElementById('progressBar').style.width=Math.min(100,(score/total)*100)+'%';
-}
-renderProgress();
-
-/* ---------- Customer UI ---------- */
-const customerFields=[
- {key:'disruption',label:'Disruption',icon:'⚠️'},
- {key:'ongoingCost',label:'On going cost',icon:'💷'},
- {key:'immediateCost',label:'Immediate cost',icon:'💸'},
- {key:'waterPressure',label:'Water pressure',icon:'🌊'},
- {key:'multipleTaps',label:'Multiple taps',icon:'🚿'},
- {key:'futurePlans',label:'Future plans',icon:'🧭'},
- {key:'brandLoyaltyLevel',label:'Brand loyalty',icon:'🎯'},
- {key:'afterCare',label:'After care',icon:'🛠️'}
-];
-const clist=document.getElementById('customerList');
-function renderCustomer(){
-  clist.innerHTML='';
-  customerFields.forEach(f=>{
-    const row=document.createElement('div'); row.className='item';
-    row.innerHTML=`<div>${f.icon}</div><div>${f.label}</div>
-      <input type="range" min="0" max="100" class="slider" value="${state.customer.priorities[f.key]}" data-key="${f.key}">`;
-    clist.appendChild(row);
-  });
-  document.getElementById('customerNotes').value=state.customer.notes||'';
-  document.getElementById('customerBrandLoyalty').checked=!!state.customer.brandLoyalty;
-}
-clist.addEventListener('input',e=>{
-  if(e.target.matches('.slider')){state.customer.priorities[e.target.dataset.key]=+e.target.value;save();renderProgress()}
-});
-document.getElementById('customerNotes').addEventListener('input',e=>{state.customer.notes=e.target.value;save()});
-document.getElementById('customerBrandLoyalty').addEventListener('change',e=>{state.customer.brandLoyalty=e.target.checked;save()});
-renderCustomer();
-
-/* ---------- System Stepper ---------- */
-const sysStepsAll=['current','new','flue','gas','condensate','cylinder'];
-let stepIndex=0;
-const sysTitle=document.getElementById('sysTitle');
-const sysContent=document.getElementById('sysContent');
-const stepbar=document.getElementById('stepbar');
-document.getElementById('stepBack').onclick=()=>{if(stepIndex>0){stepIndex--;renderSystemStep()}};
-document.getElementById('stepNext').onclick=()=>{advanceStep()};
-function getSysSteps(){
-  // Cylinder is only relevant when NEW system is not combi/warmAir/none
-  const s=[...sysStepsAll];
-  if(!['regular','system','storageCombi'].includes(state.system.next)) s.splice(s.indexOf('cylinder'),1);
-  return s;
-}
-function advanceStep(){
-  const steps=getSysSteps();
-  if(stepIndex<steps.length-1){ stepIndex++; renderSystemStep(); }
-}
-function renderSystemStep(){
-  const steps=getSysSteps();
-  stepIndex=Math.min(stepIndex,steps.length-1);
-  stepbar.innerHTML='';
-  steps.forEach((k,i)=>{
-    const pill=document.createElement('span');
-    pill.className='pill'+(i===stepIndex?' active':''); pill.textContent=k.toUpperCase();
-    stepbar.appendChild(pill);
-  });
-  const step=steps[stepIndex];
-  sysContent.innerHTML='';
-  if(step==='current'){ renderSysSelect('Select current system', 'current'); }
-  else if(step==='new'){ renderSysSelect('Select new system', 'next'); }
-  else if(step==='flue'){ renderFlue(); }
-  else if(step==='gas'){ renderGas(); }
-  else if(step==='condensate'){ renderCondensate(); }
-  else if(step==='cylinder'){ renderCylinder(); }
-  sysTitle.textContent = 'System — ' + step.charAt(0).toUpperCase()+step.slice(1);
-  save(); renderProgress();
-}
-const sysOptions=[
-  {key:'regular',label:'Regular (OV)'},{key:'system',label:'System'},{key:'combi',label:'Combi'},
-  {key:'storageCombi',label:'Storage combi'},{key:'warmAir',label:'Warm air'},{key:'ufh',label:'Underfloor'},{key:'none',label:'None'}
-];
-function renderSysSelect(title,group){
-  const card=document.createElement('div'); card.className='card';
-  card.innerHTML=`<h3 style="margin:0 0 8px">${title}</h3>`;
-  const wrap=document.createElement('div'); wrap.className='sysTiles';
-  const sysImages={
-    regular:{src:'assets/open-vented-schematic.JPG',alt:'Open-vented regular boiler system diagram'},
-    system:{src:'assets/system-boiler.PNG',alt:'Sealed system boiler with cylinder diagram'},
-    combi:{src:'assets/Combination.PNG',alt:'Combination boiler diagram'},
-    storageCombi:{src:'assets/two-zone.jpg',alt:'Storage combi layout diagram'},
-    warmAir:{src:'assets/warm-air.GIF',alt:'Warm air heating system illustration'},
-    ufh:{src:'assets/one-pipe.jpg',alt:'Underfloor heating pipework layout'},
-    none:{src:'assets/System-components.JPG',alt:'Heating system components overview'}
-  };
-  sysOptions.forEach(o=>{
-    const t=document.createElement('div'); t.className='sysTile';
-    const img=sysImages[o.key];
-    const visual=img?`<img src="${img.src}" alt="${img.alt}">`:`${o.label} diagram`;
-    t.innerHTML=`<div class="sysimg">${visual}</div><div style="margin-top:8px;font-weight:800">${o.label}</div>`;
-    if(state.system[group]===o.key){t.classList.add('active')}
-    t.addEventListener('click',()=>{state.system[group]=o.key;save();renderSystemStep()});
-    wrap.appendChild(t);
-  });
-  card.appendChild(wrap); sysContent.appendChild(card);
-}
-
-function renderVisualChoiceGrid(title,choices,current,onPick){
-  const card=document.createElement('div'); card.className='card';
-  card.innerHTML=`<h3 style="margin:0 0 8px">${title}</h3>`;
-  const wrap=document.createElement('div'); wrap.className='sysTiles';
-  choices.forEach(c=>{
-    const tile=document.createElement('div'); tile.className='sysTile';
-    if(current===c.key) tile.classList.add('active');
-    const visual=c.img?`<img src="${c.img}" alt="${c.alt||c.label}">`:`${c.label}`;
-    tile.innerHTML=`<div class="sysimg">${visual}</div><div style="margin-top:8px;font-weight:800">${c.label}</div>`;
-    tile.addEventListener('click',()=>{onPick(c.key);});
-    wrap.appendChild(tile);
-  });
-  card.appendChild(wrap); sysContent.appendChild(card);
-}
-function mkChoiceCard(title,choices,current,onPick,notesKey){
-  const card=document.createElement('div'); card.className='card';
-  card.innerHTML=`<h3 style="margin:0 0 8px">${title}</h3>`;
-  const chips=document.createElement('div'); chips.className='chips';
-  choices.forEach(c=>{
-    const chip=document.createElement('span'); chip.className='chip'; chip.textContent=c.label;
-    if(current===c.key) chip.classList.add('active');
-    chip.onclick=()=>{onPick(c.key);};
-    chips.appendChild(chip);
-  });
-  card.appendChild(chips);
-  const notes=document.createElement('textarea'); notes.className='noteBox'; notes.placeholder='Notes (optional)…';
-  notes.value=(notesKey.get())||'';
-  notes.oninput=()=>{notesKey.set(notes.value); save();};
-  card.appendChild(document.createElement('div')).className='sep';
-  card.appendChild(notes);
-  sysContent.appendChild(card);
-}
-function renderFlue(){
-  renderVisualChoiceGrid('Flue route visuals',[
-    {key:'rear',label:'Direct rear',img:'assets/Horizontal-flue-left.JPG',alt:'Rear flue outlet example'},
-    {key:'horizontal',label:'Horizontal',img:'assets/flue-horizontal-fanned.WEBP',alt:'Horizontal flue with plume kit'},
-    {key:'vertical45',label:'Vertical with 45s',img:'assets/flue-vertical-pitched-roof.JPG',alt:'Vertical flue using 45° offsets'},
-    {key:'vertical90',label:'Vertical with 90s',img:'assets/flue-vertical-flat-roof.JPG',alt:'Vertical flue through flat roof with 90° bends'}
-  ],
-  state.system.flue.route,
-  (k)=>{state.system.flue.route=k;save();renderSystemStep()});
-  mkChoiceCard('Flue route',
-    [
-      {key:'rear',label:'Direct rear'},
-      {key:'horizontal',label:'Horizontal'},
-      {key:'vertical45',label:'Vertical with 45s'},
-      {key:'vertical90',label:'Vertical with 90s'}
-    ],
-    state.system.flue.route,
-    (k)=>{state.system.flue.route=k;save();renderSystemStep()},
-    {get:()=>state.system.flue.notes,set:v=>state.system.flue.notes=v}
-  );
-}
-function renderGas(){
-  mkChoiceCard('Gas plan',
-    [
-      {key:'existingOK',label:'Use existing (OK)'},
-      {key:'upgrade',label:'Upgrade pipework'},
-      {key:'meterMove',label:'Meter move required'}
-    ],
-    state.system.gas.plan,
-    (k)=>{state.system.gas.plan=k;save();renderSystemStep()},
-    {get:()=>state.system.gas.notes,set:v=>state.system.gas.notes=v}
-  );
-}
-function renderCondensate(){
-  const diagram=document.createElement('div'); diagram.className='card';
-  diagram.innerHTML=`<h3 style="margin:0 0 12px">Condensate visual</h3>
-    <div class="condensateVisual">
-      <img src="assets/condensate-diagram.svg" alt="Condensate routing diagram with gully, hopper, soil stack and soakaway">
-      <button class="condensateHotspot" style="top:78%;left:32%" data-route="externalSoakaway" data-label="Gully">Gully</button>
-      <button class="condensateHotspot" style="top:35%;left:64%" data-route="externalSoakaway" data-label="Hopper">Hopper</button>
-      <button class="condensateHotspot" style="top:56%;left:70%" data-route="internalWaste" data-label="Soil">Soil</button>
-      <button class="condensateHotspot" style="top:82%;left:84%" data-route="externalSoakaway" data-label="Soakaway">Soakaway</button>
-      <div class="note">Tap a hotspot to pre-select the matching condensate route.</div>
-    </div>`;
-  sysContent.appendChild(diagram);
-  diagram.querySelectorAll('.condensateHotspot').forEach(btn=>{
-    const route=btn.dataset.route;
-    if(state.system.condensate.route===route){btn.classList.add('active');}
-    btn.addEventListener('click',()=>{
-      state.system.condensate.route=route;
-      save();
-      renderSystemStep();
-    });
-  });
-  mkChoiceCard('Condensate route',
-    [
-      {key:'internalWaste',label:'Internal waste'},
-      {key:'externalSoakaway',label:'External soakaway'},
-      {key:'pump',label:'Condensate pump'},
-      {key:'traceHeat',label:'External with trace heat'}
-    ],
-    state.system.condensate.route,
-    (k)=>{state.system.condensate.route=k;save();renderSystemStep()},
-    {get:()=>state.system.condensate.notes,set:v=>state.system.condensate.notes=v}
-  );
-}
-function renderCylinder(){
-  renderVisualChoiceGrid('Cylinder visuals',[
-    {key:'keepVented',label:'Keep vented',img:'assets/vented-cylinder.PNG',alt:'Existing vented cylinder'},
-    {key:'newUnvented',label:'New unvented',img:'assets/unvented-cylinder.JPG',alt:'Unvented cylinder installation'},
-    {key:'newVented',label:'New vented',img:'assets/vented-cylinder.PNG',alt:'New vented cylinder'},
-    {key:'remove',label:'Remove cylinder',img:'assets/System-components.JPG',alt:'System components without cylinder'}
-  ],
-  state.system.cylinder.plan,
-  (k)=>{state.system.cylinder.plan=k;save();renderSystemStep()});
-  mkChoiceCard('Cylinder plan',
-    [
-      {key:'keepVented',label:'Keep existing (vented)'},
-      {key:'newUnvented',label:'New unvented'},
-      {key:'newVented',label:'New vented'},
-      {key:'remove',label:'Remove cylinder'}
-    ],
-    state.system.cylinder.plan,
-    (k)=>{state.system.cylinder.plan=k;save();renderSystemStep()},
-    {get:()=>state.system.cylinder.notes,set:v=>state.system.cylinder.notes=v}
-  );
-}
-renderSystemStep();
-
-/* ---------- Safety ---------- */
-const SAFETY_LIBRARY={
-  workingAtHeights:{title:'Working at heights',items:[
-    'WAH01 Ladder access required','WAH02A Scaffold – tower standard','WAH02B Scaffold – tower bridging',
-    'WAH02C Scaffold – cantilever','WAH03 Roof access permit required','WAH04A Loft access boarded',
-    'WAH04B Loft access unboarded','WAH05 MEWP required','WAH06 Flat roof – builder to make good',
-    'WAH50 Ladder 1:4 (~75°) secure footing','WAH51 Reach limits / exclusion zone']},
-  environmental:{title:'Environmental',items:['ASB suspected','Confined space','Poor lighting','Ventilation concerns','Waste/skip required']},
-  electrical:{title:'Electrical',items:['Spur required','RCD absent','Consumer unit access','Bonding check required']},
-  animals:{title:'Animals',items:['Dogs on site','Cats on site','Livestock nearby','Allergy risk']},
-  customer:{title:'Customer',items:['Vulnerable customer','Interpreter needed','Key-safe access','Carer present']},
-  other:{title:'Other',items:['Parking restrictions','Neighbour access','Permit required','Noise/time restrictions']}
-};
-let currentSafetyKey=null;
-document.querySelectorAll('[data-safety]').forEach(t=>t.addEventListener('click',()=>{currentSafetyKey=t.dataset.safety;openSafety(currentSafetyKey)}));
-function openSafety(key){
-  const lib=SAFETY_LIBRARY[key]; document.getElementById('safetyTitle').textContent=lib.title;
-  const wrap=document.getElementById('safetyChips'); wrap.innerHTML=''; const selected=new Set(state.safety[key].items||[]);
-  lib.items.forEach(txt=>{
-    const chip=document.createElement('span'); chip.className='chip'; chip.textContent=txt;
-    if(selected.has(txt)) chip.classList.add('active');
-    chip.onclick=()=>{ if(selected.has(txt))selected.delete(txt); else selected.add(txt); state.safety[key].items=[...selected]; chip.classList.toggle('active'); save(); renderProgress(); };
-    wrap.appendChild(chip);
-  });
-  const notes=document.getElementById('safetyNotes'); notes.value=state.safety[key].notes||'';
-  notes.oninput=e=>{state.safety[key].notes=e.target.value; save();};
-  document.getElementById('safetyPanel').style.display='block';
-}
-
-/* ---------- Storage & IO ---------- */
-function save(){state.meta.updated=new Date().toISOString(); localStorage.setItem('notesElite',JSON.stringify(state))}
-function load(){try{return JSON.parse(localStorage.getItem('notesElite'))}catch{return null}}
-
-document.getElementById('btnExport').onclick=()=>{
-  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`depot-notes-${new Date().toISOString().replace(/[:.]/g,'-')}.json`; a.click();
-};
-document.getElementById('btnImport').onclick=()=>document.getElementById('fileInput').click();
-document.getElementById('fileInput').addEventListener('change',async e=>{
-  const f=e.target.files[0]; if(!f) return;
-  try{ const obj=JSON.parse(await f.text()); state=Object.assign(structuredClone(DEFAULT),obj); save(); renderCustomer(); renderSystemStep(); renderProgress(); alert('Imported JSON.'); }
-  catch(err){ alert('Import failed: '+err.message); }
-  finally{ e.target.value=''; }
-});
-
-/* ---------- Init ---------- */
-go('home');
-</script>
+  <footer>
+    Looking for the original experience? <a href="app.html">Jump straight to Depot Notes-Elite</a>.
+  </footer>
+</main>
 </body>
 </html>
