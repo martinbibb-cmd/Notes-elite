@@ -45,6 +45,7 @@ h2{font-size:28px;margin:8px 0 12px;text-align:center}
 .chip{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;font-size:14px}
 .chip.active{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-20) inset;color:var(--brand)}
 .sysimg{display:flex;align-items:center;justify-content:center;background:#fff;border:1px dashed var(--line);height:160px;border-radius:12px;font-size:13px;color:var(--muted)}
+.sysimg img{max-width:100%;max-height:140px;object-fit:contain;display:block}
 .badge{background:#eef2ff;color:#2f5aff;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}
 .sep{height:1px;background:#e5e7eb;margin:10px 0}
 .stepbar{display:flex;gap:6px;flex-wrap:wrap}
@@ -262,11 +263,38 @@ function renderSysSelect(title,group){
   const card=document.createElement('div'); card.className='card';
   card.innerHTML=`<h3 style="margin:0 0 8px">${title}</h3>`;
   const wrap=document.createElement('div'); wrap.className='sysTiles';
+  const sysImages={
+    regular:{src:'assets/open-vented-schematic.JPG',alt:'Open-vented regular boiler system diagram'},
+    system:{src:'assets/system-boiler.PNG',alt:'Sealed system boiler with cylinder diagram'},
+    combi:{src:'assets/Combination.PNG',alt:'Combination boiler diagram'},
+    storageCombi:{src:'assets/two-zone.jpg',alt:'Storage combi layout diagram'},
+    warmAir:{src:'assets/warm-air.GIF',alt:'Warm air heating system illustration'},
+    ufh:{src:'assets/one-pipe.jpg',alt:'Underfloor heating pipework layout'},
+    none:{src:'assets/System-components.JPG',alt:'Heating system components overview'}
+  };
   sysOptions.forEach(o=>{
-    const t=document.createElement('div'); t.className='sysTile'; t.innerHTML=`<div class="sysimg">${o.label} diagram</div><div style="margin-top:8px;font-weight:800">${o.label}</div>`;
+    const t=document.createElement('div'); t.className='sysTile';
+    const img=sysImages[o.key];
+    const visual=img?`<img src="${img.src}" alt="${img.alt}">`:`${o.label} diagram`;
+    t.innerHTML=`<div class="sysimg">${visual}</div><div style="margin-top:8px;font-weight:800">${o.label}</div>`;
     if(state.system[group]===o.key){t.classList.add('active')}
     t.addEventListener('click',()=>{state.system[group]=o.key;save();renderSystemStep()});
     wrap.appendChild(t);
+  });
+  card.appendChild(wrap); sysContent.appendChild(card);
+}
+
+function renderVisualChoiceGrid(title,choices,current,onPick){
+  const card=document.createElement('div'); card.className='card';
+  card.innerHTML=`<h3 style="margin:0 0 8px">${title}</h3>`;
+  const wrap=document.createElement('div'); wrap.className='sysTiles';
+  choices.forEach(c=>{
+    const tile=document.createElement('div'); tile.className='sysTile';
+    if(current===c.key) tile.classList.add('active');
+    const visual=c.img?`<img src="${c.img}" alt="${c.alt||c.label}">`:`${c.label}`;
+    tile.innerHTML=`<div class="sysimg">${visual}</div><div style="margin-top:8px;font-weight:800">${c.label}</div>`;
+    tile.addEventListener('click',()=>{onPick(c.key);});
+    wrap.appendChild(tile);
   });
   card.appendChild(wrap); sysContent.appendChild(card);
 }
@@ -289,6 +317,14 @@ function mkChoiceCard(title,choices,current,onPick,notesKey){
   sysContent.appendChild(card);
 }
 function renderFlue(){
+  renderVisualChoiceGrid('Flue route visuals',[
+    {key:'rear',label:'Direct rear',img:'assets/Horizontal-flue-left.JPG',alt:'Rear flue outlet example'},
+    {key:'horizontal',label:'Horizontal',img:'assets/flue-horizontal-fanned.WEBP',alt:'Horizontal flue with plume kit'},
+    {key:'vertical45',label:'Vertical with 45s',img:'assets/flue-vertical-pitched-roof.JPG',alt:'Vertical flue using 45° offsets'},
+    {key:'vertical90',label:'Vertical with 90s',img:'assets/flue-vertical-flat-roof.JPG',alt:'Vertical flue through flat roof with 90° bends'}
+  ],
+  state.system.flue.route,
+  (k)=>{state.system.flue.route=k;save();renderSystemStep()});
   mkChoiceCard('Flue route',
     [
       {key:'rear',label:'Direct rear'},
@@ -347,6 +383,14 @@ function renderCondensate(){
   );
 }
 function renderCylinder(){
+  renderVisualChoiceGrid('Cylinder visuals',[
+    {key:'keepVented',label:'Keep vented',img:'assets/vented-cylinder.PNG',alt:'Existing vented cylinder'},
+    {key:'newUnvented',label:'New unvented',img:'assets/unvented-cylinder.JPG',alt:'Unvented cylinder installation'},
+    {key:'newVented',label:'New vented',img:'assets/vented-cylinder.PNG',alt:'New vented cylinder'},
+    {key:'remove',label:'Remove cylinder',img:'assets/System-components.JPG',alt:'System components without cylinder'}
+  ],
+  state.system.cylinder.plan,
+  (k)=>{state.system.cylinder.plan=k;save();renderSystemStep()});
   mkChoiceCard('Cylinder plan',
     [
       {key:'keepVented',label:'Keep existing (vented)'},
