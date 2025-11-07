@@ -338,6 +338,11 @@ function mkChoiceCard(title,choices,current,onPick,notesKey){
   sysContent.appendChild(card);
 }
 function renderFlue(){
+  const builderCard=document.createElement('div'); builderCard.className='card infoCard';
+  builderCard.innerHTML=`<h3 style="margin:0">Interactive flue planner</h3>
+    <p class="help">Sketch the proposed route, count bends and copy the JSON output back into your notes export.</p>
+    <a class="btn small" href="flue.html" target="_blank" rel="noopener">Open flue route builder</a>`;
+  sysContent.appendChild(builderCard);
   renderVisualChoiceGrid('Flue route visuals',[
     {key:'rear',label:'Direct rear',img:'assets/Horizontal-flue-left.JPG',alt:'Rear flue outlet example'},
     {key:'horizontal',label:'Horizontal',img:'assets/flue-horizontal-fanned.WEBP',alt:'Horizontal flue with plume kit'},
