@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Condensate Options</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #fff;
+      --border: #d1d5db;
+      --accent: #0ea5e9;
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, system-ui, "Segoe UI", sans-serif;
+      background: var(--bg);
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 14px auto;
+      background: #fff;
+      border: 1.5px solid #000;
+      border-radius: 26px;
+      padding: 18px 22px 24px;
+    }
+    header {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .home-btn {
+      background: #0f71d9;
+      border: none;
+      color: #fff;
+      padding: 7px 16px;
+      border-radius: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    h1 {
+      font-size: 26px;
+      color: #0f71d9;
+      margin: 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 26px;
+    }
+    .img-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 10px;
+      position: relative;
+      min-height: 240px;
+    }
+    .img-card h2 {
+      font-size: 14px;
+      margin: 2px 0 8px;
+      color: #374151;
+    }
+    .img-wrap {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .img-wrap img {
+      width: 100%;
+      display: block;
+      border-radius: 10px;
+    }
+    .hotspot {
+      position: absolute;
+      border: 2px solid rgba(14,165,233,.5);
+      background: rgba(14,165,233,.04);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: .12s ease-out;
+    }
+    .hotspot:hover,
+    .hotspot.active {
+      border-color: #0ea5e9;
+      background: rgba(14,165,233,.16);
+    }
+    .hotspot small {
+      position: absolute;
+      bottom: -20px;
+      left: 0;
+      font-size: 10px;
+      background: rgba(255,255,255,.8);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn-secondary {
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-secondary:hover {
+      border-color: #0ea5e9;
+    }
+    .selected-panel {
+      margin-top: 20px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .pill {
+      display: inline-block;
+      background: #eff6ff;
+      color: #0f3c79;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin: 2px 6px 2px 0;
+    }
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      min-height: 60px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      background: #f9fafb;
+      padding: 4px 6px;
+    }
+    @media (max-width: 600px) {
+      .wrap { border-radius: 0; }
+      header { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <button class="home-btn">Home</button>
+      <h1>Condensate</h1>
+    </header>
+
+    <div class="grid">
+      <!-- EXTERNAL -->
+      <div class="img-card">
+        <h2>External discharge</h2>
+        <div class="img-wrap" id="ext-img">
+          <img src="assets/condensate-external.png" alt="External condensate options">
+          <!-- hotspots: tweak % to match your actual image aspect -->
+          <!-- Flue entry (for visual ref, still selectable) -->
+          <div class="hotspot" data-option="Condensate to flue hopper (ext)" style="top:12%;left:7%;width:20%;height:13%;">
+            <small>Flue hopper</small>
+          </div>
+          <!-- Soil / hopper into stack -->
+          <div class="hotspot" data-option="Condensate to soil/hopper" style="top:23%;right:8%;width:23%;height:20%;">
+            <small>Soil / hopper</small>
+          </div>
+          <!-- Gully -->
+          <div class="hotspot" data-option="Condensate to gully" style="bottom:2%;left:5%;width:20%;height:18%;">
+            <small>Gully</small>
+          </div>
+          <!-- Soakaway -->
+          <div class="hotspot" data-option="Condensate soakaway" style="bottom:0%;right:3%;width:23%;height:30%;">
+            <small>Soakaway</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERNAL -->
+      <div class="img-card">
+        <h2>Internal discharge</h2>
+        <div class="img-wrap" id="int-img">
+          <img src="assets/internal-condensate.png" alt="Internal condensate options">
+          <!-- To sink trap -->
+          <div class="hotspot" data-option="Condensate to sink waste/trap" style="top:63%;left:34%;width:24%;height:20%;">
+            <small>Sink trap</small>
+          </div>
+          <!-- To internal stack (black pipe) -->
+          <div class="hotspot" data-option="Condensate to internal stack" style="top:7%;right:6%;width:18%;height:85%;">
+            <small>Internal stack</small>
+          </div>
+          <!-- Direct to outside (through wall near boiler) -->
+          <div class="hotspot" data-option="Condensate to outside (internal run)" style="top:10%;left:13%;width:19%;height:20%;">
+            <small>Direct out</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-secondary" id="add-pump">➕ Condensate pump</button>
+      <button class="btn-secondary" id="clear-all">Clear</button>
+    </div>
+
+    <div class="selected-panel">
+      <div id="selected-pills"></div>
+      <textarea id="selected-json" readonly></textarea>
+    </div>
+  </div>
+
+  <script>
+    const selections = [];
+    const pills = document.getElementById('selected-pills');
+    const out = document.getElementById('selected-json');
+
+    function addSelection(label) {
+      if (!selections.includes(label)) {
+        selections.push(label);
+      }
+      renderSelections();
+    }
+
+    function renderSelections() {
+      pills.innerHTML = '';
+      selections.forEach(s => {
+        const span = document.createElement('span');
+        span.className = 'pill';
+        span.textContent = s;
+        pills.appendChild(span);
+      });
+      out.value = JSON.stringify(selections, null, 2);
+    }
+
+    // hotspots
+    document.querySelectorAll('.hotspot').forEach(h => {
+      h.addEventListener('click', () => {
+        const opt = h.dataset.option;
+        addSelection(opt);
+        h.classList.add('active');
+        setTimeout(() => h.classList.remove('active'), 320);
+      });
+    });
+
+    // pump
+    document.getElementById('add-pump').addEventListener('click', () => {
+      addSelection('Condensate pump required');
+    });
+
+    // clear
+    document.getElementById('clear-all').addEventListener('click', () => {
+      selections.length = 0;
+      renderSelections();
+    });
+
+    // initial
+    renderSelections();
+  </script>
+</body>
+</html>
