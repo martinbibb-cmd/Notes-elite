@@ -171,6 +171,7 @@ const DEFAULT = {
   },
   system:{
     current:null, next:null,
+    boiler:{type:null,brand:null,series:null,model:null,notes:""},
     flue:{route:null,notes:""},         // 'rear'|'horizontal'|'vertical45'|'vertical90'
     gas:{plan:null,notes:""},           // 'existingOK'|'upgrade'|'meterMove'
     condensate:{route:null,notes:""},   // 'internalWaste'|'externalSoakaway'|'pump'|'traceHeat'
@@ -233,7 +234,7 @@ document.getElementById('customerBrandLoyalty').addEventListener('change',e=>{st
 renderCustomer();
 
 /* ---------- System Stepper ---------- */
-const sysStepsAll=['current','new','flue','gas','condensate','cylinder'];
+const sysStepsAll=['current','new','boilerType','boilerBrand','boilerSeries','boilerModel','flue','gas','condensate','cylinder'];
 let stepIndex=0;
 const sysTitle=document.getElementById('sysTitle');
 const sysContent=document.getElementById('sysContent');
@@ -241,9 +242,14 @@ const stepbar=document.getElementById('stepbar');
 document.getElementById('stepBack').onclick=()=>{if(stepIndex>0){stepIndex--;renderSystemStep()}};
 document.getElementById('stepNext').onclick=()=>{advanceStep()};
 function getSysSteps(){
+  let s=['current','new'];
+  // Only show boiler selection if next system needs a boiler
+  if(['regular','system','combi','storageCombi'].includes(state.system.next)){
+    s.push('boilerType','boilerBrand','boilerSeries','boilerModel');
+  }
+  s.push('flue','gas','condensate');
   // Cylinder is only relevant when NEW system is not combi/warmAir/none
-  const s=[...sysStepsAll];
-  if(!['regular','system','storageCombi'].includes(state.system.next)) s.splice(s.indexOf('cylinder'),1);
+  if(['regular','system','storageCombi'].includes(state.system.next)) s.push('cylinder');
   return s;
 }
 function advanceStep(){
@@ -263,6 +269,10 @@ function renderSystemStep(){
   sysContent.innerHTML='';
   if(step==='current'){ renderSysSelect('Select current system', 'current'); }
   else if(step==='new'){ renderSysSelect('Select new system', 'next'); }
+  else if(step==='boilerType'){ renderBoilerType(); }
+  else if(step==='boilerBrand'){ renderBoilerBrand(); }
+  else if(step==='boilerSeries'){ renderBoilerSeries(); }
+  else if(step==='boilerModel'){ renderBoilerModel(); }
   else if(step==='flue'){ renderFlue(); }
   else if(step==='gas'){ renderGas(); }
   else if(step==='condensate'){ renderCondensate(); }
@@ -297,12 +307,248 @@ function renderSysSelect(title,group){
     wrap.appendChild(t);
   });
   card.appendChild(wrap); sysContent.appendChild(card);
-  if(group==='next'){
-    renderBoilerBrandShowcase();
-    if(state.system.next==='regular'){
-      renderWorcesterRegularRange();
-    }
+}
+
+/* ---------- Boiler Selection Functions ---------- */
+function renderBoilerType(){
+  mkChoiceCard('Boiler type',
+    [
+      {key:'combi',label:'Combi boiler'},
+      {key:'system',label:'System boiler'},
+      {key:'regular',label:'Regular boiler'}
+    ],
+    state.system.boiler.type,
+    (k)=>{state.system.boiler.type=k;save();renderSystemStep()},
+    {get:()=>state.system.boiler.notes,set:v=>state.system.boiler.notes=v}
+  );
+}
+
+function renderBoilerBrand(){
+  const card=document.createElement('div'); card.className='card infoCard';
+  card.innerHTML=`<h3 style="margin:0 0 12px">Select boiler brand</h3>
+    <p class="help">Choose the manufacturer for your ${state.system.boiler.type||'new'} boiler.</p>`;
+  const logos=[
+    {key:'worcester',src:'assets/Worcester-logo.PNG',alt:'Worcester Bosch logo'},
+    {key:'vaillant',src:'assets/Vaillant-logo.PNG',alt:'Vaillant logo'},
+    {key:'glowworm',src:'assets/Glow-worm-logo.JPG',alt:'Glow-worm logo'},
+    {key:'ideal',text:'ideal'},
+    {key:'viessmann',src:'assets/Viessmann-logo.JPG',alt:'Viessmann logo'}
+  ];
+  const grid=document.createElement('div'); grid.className='logoGrid';
+  logos.forEach(l=>{
+    const cell=document.createElement('div'); cell.className='logoCard';
+    if(state.system.boiler.brand===l.key){cell.style.borderColor='var(--brand)';cell.style.borderWidth='3px';}
+    cell.innerHTML=l.src?`<img src="${l.src}" alt="${l.alt}">`:`<span class="logoWord ideal">${l.text}</span>`;
+    cell.style.cursor='pointer';
+    cell.onclick=()=>{state.system.boiler.brand=l.key;save();renderSystemStep();};
+    grid.appendChild(cell);
+  });
+  card.appendChild(grid);
+  sysContent.appendChild(card);
+}
+
+const BOILER_SERIES_DB={
+  worcester:{
+    combi:['Greenstar 2000','Greenstar 4000','Greenstar 8000'],
+    system:['Greenstar 2000','Greenstar 4000','Greenstar 8000 Life'],
+    regular:['Greenstar Ri','Greenstar 8000 Life','Greenstar CDi FS']
+  },
+  vaillant:{
+    combi:['ecoTEC plus','ecoTEC exclusive','ecoFIT pure'],
+    system:['ecoTEC plus','ecoTEC exclusive'],
+    regular:['ecoTEC plus']
+  },
+  ideal:{
+    combi:['Logic Max','Logic+','Vogue Max'],
+    system:['Logic Max','Vogue Max'],
+    regular:['Logic Max','Mexico']
+  },
+  glowworm:{
+    combi:['Energy','Ultimate 3'],
+    system:['Energy','Ultimate 3'],
+    regular:['Flexicom']
+  },
+  viessmann:{
+    combi:['Vitodens 050-W','Vitodens 100-W','Vitodens 200-W'],
+    system:['Vitodens 100-W','Vitodens 200-W'],
+    regular:['Vitodens 200-W']
   }
+};
+
+function renderBoilerSeries(){
+  const brand=state.system.boiler.brand;
+  const type=state.system.boiler.type;
+  if(!brand||!type){
+    const card=document.createElement('div');card.className='card';
+    card.innerHTML='<p class="help">Please select boiler type and brand first.</p>';
+    sysContent.appendChild(card);
+    return;
+  }
+  const series=BOILER_SERIES_DB[brand]?.[type]||[];
+  mkChoiceCard(`${brand.charAt(0).toUpperCase()+brand.slice(1)} ${type} series`,
+    series.map(s=>({key:s,label:s})),
+    state.system.boiler.series,
+    (k)=>{state.system.boiler.series=k;save();renderSystemStep()},
+    {get:()=>state.system.boiler.notes,set:v=>state.system.boiler.notes=v}
+  );
+}
+
+const BOILER_MODELS_DB={
+  worcester:{
+    'Greenstar Ri':[
+      {model:'Greenstar Ri 12kW',output:'12kW',dims:'600×390×270'},
+      {model:'Greenstar Ri 15kW',output:'15kW',dims:'600×390×270'},
+      {model:'Greenstar Ri 18kW',output:'18kW',dims:'600×390×270'},
+      {model:'Greenstar Ri 24kW',output:'24kW',dims:'600×390×270'},
+      {model:'Greenstar Ri 30kW',output:'30kW',dims:'600×390×270'}
+    ],
+    'Greenstar 2000':[
+      {model:'Greenstar 2000 25kW Combi',output:'25kW',dims:'720×440×360'},
+      {model:'Greenstar 2000 30kW Combi',output:'30kW',dims:'720×440×360'},
+      {model:'Greenstar 2000 35kW Combi',output:'35kW',dims:'720×440×360'}
+    ],
+    'Greenstar 4000':[
+      {model:'Greenstar 4000 25kW Combi',output:'25kW',dims:'720×440×360'},
+      {model:'Greenstar 4000 30kW Combi',output:'30kW',dims:'720×440×360'},
+      {model:'Greenstar 4000 35kW Combi',output:'35kW',dims:'720×440×360'}
+    ],
+    'Greenstar 8000':[
+      {model:'Greenstar 8000 25kW',output:'25kW',dims:'780×440×365'},
+      {model:'Greenstar 8000 30kW',output:'30kW',dims:'780×440×365'},
+      {model:'Greenstar 8000 35kW',output:'35kW',dims:'780×440×365'}
+    ],
+    'Greenstar 8000 Life':[
+      {model:'Greenstar 8000 Life 30kW',output:'30kW',dims:'780×440×365'},
+      {model:'Greenstar 8000 Life 35kW',output:'35kW',dims:'780×440×365'},
+      {model:'Greenstar 8000 Life 40kW',output:'40kW',dims:'780×440×365'},
+      {model:'Greenstar 8000 Life 45kW',output:'45kW',dims:'780×440×365'}
+    ],
+    'Greenstar CDi FS':[
+      {model:'Greenstar CDi FS 30kW',output:'30kW',dims:'850×520×600'},
+      {model:'Greenstar CDi FS 35kW',output:'35kW',dims:'850×520×600'}
+    ]
+  },
+  vaillant:{
+    'ecoTEC plus':[
+      {model:'ecoTEC plus 825 25kW',output:'25kW',dims:'720×440×338'},
+      {model:'ecoTEC plus 832 32kW',output:'32kW',dims:'720×440×338'},
+      {model:'ecoTEC plus 838 38kW',output:'38kW',dims:'720×440×338'}
+    ],
+    'ecoTEC exclusive':[
+      {model:'ecoTEC exclusive 832 32kW',output:'32kW',dims:'720×440×338'},
+      {model:'ecoTEC exclusive 838 38kW',output:'38kW',dims:'720×440×338'},
+      {model:'ecoTEC exclusive 843 43kW',output:'43kW',dims:'720×440×338'}
+    ],
+    'ecoFIT pure':[
+      {model:'ecoFIT pure 825 25kW',output:'25kW',dims:'720×440×338'},
+      {model:'ecoFIT pure 830 30kW',output:'30kW',dims:'720×440×338'},
+      {model:'ecoFIT pure 835 35kW',output:'35kW',dims:'720×440×338'}
+    ]
+  },
+  ideal:{
+    'Logic Max':[
+      {model:'Logic Max 24kW Combi',output:'24kW',dims:'720×395×290'},
+      {model:'Logic Max 30kW Combi',output:'30kW',dims:'720×395×290'},
+      {model:'Logic Max 35kW Combi',output:'35kW',dims:'720×395×290'}
+    ],
+    'Logic+':[
+      {model:'Logic+ 24kW Combi',output:'24kW',dims:'720×395×290'},
+      {model:'Logic+ 30kW Combi',output:'30kW',dims:'720×395×290'},
+      {model:'Logic+ 35kW Combi',output:'35kW',dims:'720×395×290'}
+    ],
+    'Vogue Max':[
+      {model:'Vogue Max 26kW Combi',output:'26kW',dims:'720×400×330'},
+      {model:'Vogue Max 32kW Combi',output:'32kW',dims:'720×400×330'},
+      {model:'Vogue Max 40kW Combi',output:'40kW',dims:'720×400×330'}
+    ],
+    'Mexico':[
+      {model:'Mexico HE 18kW',output:'18kW',dims:'700×390×270'},
+      {model:'Mexico HE 24kW',output:'24kW',dims:'700×390×270'}
+    ]
+  },
+  glowworm:{
+    'Energy':[
+      {model:'Energy 25S 25kW System',output:'25kW',dims:'720×440×360'},
+      {model:'Energy 30S 30kW System',output:'30kW',dims:'720×440×360'},
+      {model:'Energy 35C 35kW Combi',output:'35kW',dims:'720×440×360'}
+    ],
+    'Ultimate 3':[
+      {model:'Ultimate 3 25kW Combi',output:'25kW',dims:'720×400×360'},
+      {model:'Ultimate 3 30kW Combi',output:'30kW',dims:'720×400×360'},
+      {model:'Ultimate 3 35kW Combi',output:'35kW',dims:'720×400×360'}
+    ],
+    'Flexicom':[
+      {model:'Flexicom 15HX 15kW',output:'15kW',dims:'680×390×270'},
+      {model:'Flexicom 18HX 18kW',output:'18kW',dims:'680×390×270'},
+      {model:'Flexicom 24HX 24kW',output:'24kW',dims:'680×390×270'}
+    ]
+  },
+  viessmann:{
+    'Vitodens 050-W':[
+      {model:'Vitodens 050-W 24kW',output:'24kW',dims:'720×400×360'},
+      {model:'Vitodens 050-W 29kW',output:'29kW',dims:'720×400×360'}
+    ],
+    'Vitodens 100-W':[
+      {model:'Vitodens 100-W 25kW',output:'25kW',dims:'720×450×360'},
+      {model:'Vitodens 100-W 30kW',output:'30kW',dims:'720×450×360'},
+      {model:'Vitodens 100-W 35kW',output:'35kW',dims:'720×450×360'}
+    ],
+    'Vitodens 200-W':[
+      {model:'Vitodens 200-W 25kW',output:'25kW',dims:'850×450×380'},
+      {model:'Vitodens 200-W 32kW',output:'32kW',dims:'850×450×380'},
+      {model:'Vitodens 200-W 35kW',output:'35kW',dims:'850×450×380'}
+    ]
+  }
+};
+
+function renderBoilerModel(){
+  const brand=state.system.boiler.brand;
+  const series=state.system.boiler.series;
+  if(!brand||!series){
+    const card=document.createElement('div');card.className='card';
+    card.innerHTML='<p class="help">Please select brand and series first.</p>';
+    sysContent.appendChild(card);
+    return;
+  }
+  const models=BOILER_MODELS_DB[brand]?.[series]||[];
+  if(models.length===0){
+    const card=document.createElement('div');card.className='card';
+    card.innerHTML=`<p class="help">No models available for ${series}. Please contact support.</p>`;
+    sysContent.appendChild(card);
+    return;
+  }
+  const card=document.createElement('div'); card.className='card infoCard';
+  card.innerHTML=`<h3 style="margin:0 0 12px">${series} models</h3>
+    <p class="help">Select the exact model and output for your installation.</p>`;
+  const table=document.createElement('table'); table.className='specTable';
+  table.innerHTML=`<thead>
+    <tr>
+      <th scope="col">Model</th>
+      <th scope="col">Output</th>
+      <th scope="col">Dimensions (H×W×D mm)</th>
+      <th scope="col">Select</th>
+    </tr>
+  </thead><tbody></tbody>`;
+  const tbody=table.querySelector('tbody');
+  models.forEach(m=>{
+    const tr=document.createElement('tr');
+    const isSelected=state.system.boiler.model===m.model;
+    if(isSelected)tr.style.background='var(--brand-20)';
+    tr.innerHTML=`<td><strong>${m.model}</strong></td>
+      <td>${m.output}</td>
+      <td>${m.dims}</td>
+      <td><button class="btn small ${isSelected?'':'ghost'}" data-model="${m.model}">
+        ${isSelected?'Selected':'Select'}
+      </button></td>`;
+    tr.querySelector('button').onclick=()=>{
+      state.system.boiler.model=m.model;
+      save();
+      renderSystemStep();
+    };
+    tbody.appendChild(tr);
+  });
+  card.appendChild(table);
+  sysContent.appendChild(card);
 }
 
 function renderVisualChoiceGrid(title,choices,current,onPick){
@@ -376,6 +622,11 @@ function renderGas(){
   );
 }
 function renderCondensate(){
+  const builderCard=document.createElement('div'); builderCard.className='card infoCard';
+  builderCard.innerHTML=`<h3 style="margin:0">Interactive condensate options</h3>
+    <p class="help">Use the interactive page to visualize external and internal discharge options with hotspot selection.</p>
+    <a class="btn small" href="condensate.html" target="_blank" rel="noopener">Open condensate options</a>`;
+  sysContent.appendChild(builderCard);
   const diagram=document.createElement('div'); diagram.className='card';
   diagram.innerHTML=`<h3 style="margin:0 0 12px">Condensate visual</h3>
     <div class="condensateVisual">
@@ -438,62 +689,6 @@ function renderCylinder(){
     (k)=>{state.system.cylinder.plan=k;save();renderSystemStep()},
     {get:()=>state.system.cylinder.notes,set:v=>state.system.cylinder.notes=v}
   );
-}
-function renderBoilerBrandShowcase(){
-  const card=document.createElement('div'); card.className='card infoCard';
-  card.innerHTML=`<h3 style="margin:0">New boiler short list</h3>
-    <p class="help">Quickly flag the brand families you plan to quote or install.</p>`;
-  const logos=[
-    {src:'assets/Worcester-logo.PNG',alt:'Worcester Bosch logo'},
-    {src:'assets/Vaillant-logo.PNG',alt:'Vaillant logo'},
-    {src:'assets/Glow-worm-logo.JPG',alt:'Glow-worm logo'},
-    {text:'ideal'},
-    {src:'assets/Viessmann-logo.JPG',alt:'Viessmann logo'}
-  ];
-  const grid=document.createElement('div'); grid.className='logoGrid';
-  logos.forEach(l=>{
-    const cell=document.createElement('div'); cell.className='logoCard';
-    cell.innerHTML=l.src?`<img src="${l.src}" alt="${l.alt}">`:`<span class="logoWord ideal">${l.text}</span>`;
-    grid.appendChild(cell);
-  });
-  card.appendChild(grid);
-  sysContent.appendChild(card);
-}
-function renderWorcesterRegularRange(){
-  const card=document.createElement('div'); card.className='card infoCard';
-  card.innerHTML=`<h3 style="margin:0">Worcester regular conventional range</h3>
-    <p class="help">Use as a primer when matching outputs or space for a straight regular-to-regular swap.</p>`;
-  const table=document.createElement('table'); table.className='specTable';
-  table.innerHTML=`<thead>
-      <tr>
-        <th scope="col">Model</th>
-        <th scope="col">Heat outputs (kW)</th>
-        <th scope="col">Dimensions (H×W×D mm)</th>
-        <th scope="col">Installer notes</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <th scope="row"><strong>Greenstar Ri</strong></th>
-        <td>12, 15, 18, 21, 24, 27, 30</td>
-        <td>600 × 390 × 270</td>
-        <td>Compact wall-hung chassis fits airing cupboards; keep existing F&amp;E or convert to sealed.</td>
-      </tr>
-      <tr>
-        <th scope="row"><strong>Greenstar 8000 Life Regular</strong></th>
-        <td>30, 35, 40, 45</td>
-        <td>780 × 440 × 365</td>
-        <td>Modern fascia with load-comp controls; best for higher output sealed systems.</td>
-      </tr>
-      <tr>
-        <th scope="row"><strong>Greenstar CDi FS Regular</strong></th>
-        <td>30, 35</td>
-        <td>850 × 520 × 600</td>
-        <td>Floor-standing swap for legacy floor boilers; check plinth depth and rear clearances.</td>
-      </tr>
-    </tbody>`;
-  card.appendChild(table);
-  sysContent.appendChild(card);
 }
 renderSystemStep();
 
